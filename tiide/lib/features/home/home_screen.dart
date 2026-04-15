@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
+import '../../core/permissions.dart';
 import '../../core/session_controller.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
@@ -17,6 +18,19 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _retroShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // S4: On first launch redirect to permission explainer.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final prefs = ref.read(permissionPrefsProvider);
+      if (!prefs.explainerShown && platformSupportsEnrichment) {
+        context.go('/permissions');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

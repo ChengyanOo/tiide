@@ -7,8 +7,12 @@ import 'package:home_widget/home_widget.dart';
 
 import '../app/providers.dart';
 import '../data/db/database.dart';
+import '../data/repo/enrichment_repo.dart';
 import '../data/repo/session_repo.dart';
+import 'health_service.dart';
+import 'location_service.dart';
 import 'notifications.dart';
+import 'permissions.dart';
 
 bool get _mobile =>
     !kIsWeb && (Platform.isAndroid || Platform.isIOS);
@@ -18,8 +22,10 @@ const kWidgetStartedAtKey = 'tiide.startedAt';
 const kWidgetPlannedMinKey = 'tiide.plannedMin';
 
 class SessionController {
-  SessionController(this.repo);
+  SessionController(this.repo, this.enrichmentRepo, this.permPrefs);
   final SessionRepo repo;
+  final EnrichmentRepo enrichmentRepo;
+  final PermissionPrefs permPrefs;
 
   Future<Session> startSession({int plannedMin = 15}) async {
     final existing = await repo.activeSession();
@@ -32,6 +38,10 @@ class SessionController {
     await _publishWidget(s);
     await _startBgService();
     await NotificationService.instance.showActive(sessionId: s.id);
+
+    // S4: Capture pre-session biometric + start location.
+    await _captureStartEnrichment(s);
+
     return s;
   }
 
@@ -64,7 +74,69 @@ class SessionController {
     await NotificationService.instance.dismissActive();
     await _clearWidget();
     await _stopBgService();
+
+    // S4: Capture end-session biometric + end location.
+    await _captureEndEnrichment(id);
   }
+
+  // ---- S4: Enrichment capture ----
+
+  Future<void> _captureStartEnrichment(Session s) async {
+    // Health: fetch HR/HRV for [t0-5m, t0].
+    if (permPrefs.healthOptIn && platformSupportsEnrichment) {
+      final pre = await HealthService.instance.fetchSamples(
+        start: s.startedAt.subtract(const Duration(minutes: 5)),
+        end: s.startedAt,
+      );
+      if (!pre.isEmpty) {
+        await enrichmentRepo.saveSnapshot(sessionId: s.id, pre: pre);
+      }
+    }
+
+    // Geo: capture start point.
+    if (permPrefs.geoOptIn && platformSupportsEnrichment) {
+      final point = await LocationService.instance.capture();
+      if (point != null) {
+        await enrichmentRepo.saveGeoPoint(
+          sessionId: s.id,
+          kind: 'start',
+          point: point,
+        );
+      }
+    }
+  }
+
+  Future<void> _captureEndEnrichment(String sessionId) async {
+    final s = await repo.byId(sessionId);
+    if (s == null) return;
+
+    final endTime = s.endedAt ?? DateTime.now();
+
+    // Health: fetch HR/HRV for [tEnd, tEnd+5m].
+    if (permPrefs.healthOptIn && platformSupportsEnrichment) {
+      final during = await HealthService.instance.fetchSamples(
+        start: endTime,
+        end: endTime.add(const Duration(minutes: 5)),
+      );
+      if (!during.isEmpty) {
+        await enrichmentRepo.saveSnapshot(sessionId: sessionId, during: during);
+      }
+    }
+
+    // Geo: capture end point.
+    if (permPrefs.geoOptIn && platformSupportsEnrichment) {
+      final point = await LocationService.instance.capture();
+      if (point != null) {
+        await enrichmentRepo.saveGeoPoint(
+          sessionId: sessionId,
+          kind: 'end',
+          point: point,
+        );
+      }
+    }
+  }
+
+  // ---- Existing helpers ----
 
   Future<void> _scheduleEnd(Session s) async {
     final fire = s.startedAt.add(Duration(minutes: s.plannedDurationMin));
@@ -106,5 +178,9 @@ class SessionController {
 }
 
 final sessionControllerProvider = Provider<SessionController>((ref) {
-  return SessionController(ref.watch(sessionRepoProvider));
+  return SessionController(
+    ref.watch(sessionRepoProvider),
+    ref.watch(enrichmentRepoProvider),
+    ref.watch(permissionPrefsProvider),
+  );
 });

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
 import '../../core/theme.dart';
@@ -24,7 +25,10 @@ class SessionListScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(TiideSpacing.m),
             itemCount: rows.length,
             separatorBuilder: (_, _) => const SizedBox(height: TiideSpacing.s),
-            itemBuilder: (_, i) => _SessionTile(row: rows[i]),
+            itemBuilder: (_, i) => _SessionTile(
+              row: rows[i],
+              onTap: () => context.push('/sessions/${rows[i].session.id}'),
+            ),
           );
         },
       ),
@@ -50,8 +54,9 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _SessionTile extends StatelessWidget {
-  const _SessionTile({required this.row});
+  const _SessionTile({required this.row, required this.onTap});
   final SessionWithTags row;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +67,9 @@ class _SessionTile extends StatelessWidget {
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     final mins = s.actualDurationMin ?? s.plannedDurationMin;
 
-    return Card(
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
       child: Padding(
         padding: const EdgeInsets.all(TiideSpacing.m),
         child: Column(
@@ -102,6 +109,7 @@ class _SessionTile extends StatelessWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }

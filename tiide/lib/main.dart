@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/router.dart';
 import 'core/background_service.dart';
 import 'core/deep_links.dart';
+import 'core/health_service.dart';
+import 'core/location_service.dart';
 import 'core/notifications.dart';
+import 'core/permissions.dart';
 import 'core/session_controller.dart';
 import 'core/theme.dart';
 
@@ -14,7 +18,24 @@ Future<void> main() async {
   await NotificationService.instance
       .init(onBackground: notificationBackgroundHandler);
   await initBackgroundService();
-  runApp(const ProviderScope(child: TiideApp()));
+
+  final prefs = await SharedPreferences.getInstance();
+
+  // S4: Request OS-level permissions if user opted in.
+  final permPrefs = PermissionPrefs(prefs);
+  if (permPrefs.healthOptIn) {
+    await HealthService.instance.requestPermissions();
+  }
+  if (permPrefs.geoOptIn) {
+    await LocationService.instance.requestPermissions();
+  }
+
+  runApp(
+    ProviderScope(
+      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+      child: const TiideApp(),
+    ),
+  );
 }
 
 class TiideApp extends ConsumerStatefulWidget {

@@ -37,6 +37,57 @@ class SessionTags extends Table {
   Set<Column> get primaryKey => {sessionId, tagId};
 }
 
+// S4: Biometric tables
+class BiometricSnapshots extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionId =>
+      text().references(Sessions, #id, onDelete: KeyAction.cascade)();
+  RealColumn get hrAvgPre => real().nullable()();
+  RealColumn get hrAvgDuring => real().nullable()();
+  RealColumn get hrvAvgPre => real().nullable()();
+  RealColumn get hrvAvgDuring => real().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class BiometricSamples extends Table {
+  TextColumn get id => text()();
+  TextColumn get snapshotId =>
+      text().references(BiometricSnapshots, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get ts => dateTime()();
+  TextColumn get metric => text()(); // hr|hrv
+  RealColumn get value => real()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// S4: Geo tables
+class GeoPoints extends Table {
+  TextColumn get id => text()();
+  TextColumn get sessionId =>
+      text().references(Sessions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get kind => text()(); // start|end
+  RealColumn get lat => real()();
+  RealColumn get lng => real()();
+  RealColumn get accuracyM => real().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class GeoClusters extends Table {
+  TextColumn get id => text()();
+  TextColumn get userLabel => text().nullable()();
+  RealColumn get centroidLat => real()();
+  RealColumn get centroidLng => real()();
+  RealColumn get radiusM => real().withDefault(const Constant(200.0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 const defaultTags = [
   ('relationship', 'relationship', 'context'),
   ('habit', 'habit', 'context'),
@@ -45,7 +96,15 @@ const defaultTags = [
   ('other', 'other', 'context'),
 ];
 
-@DriftDatabase(tables: [Sessions, Tags, SessionTags])
+@DriftDatabase(tables: [
+  Sessions,
+  Tags,
+  SessionTags,
+  BiometricSnapshots,
+  BiometricSamples,
+  GeoPoints,
+  GeoClusters,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e])
       : super(e ??
@@ -58,13 +117,21 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await _seedTags();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(biometricSnapshots);
+            await m.createTable(biometricSamples);
+            await m.createTable(geoPoints);
+            await m.createTable(geoClusters);
+          }
         },
       );
 

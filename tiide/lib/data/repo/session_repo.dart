@@ -133,4 +133,13 @@ class SessionRepo {
     return (db.select(db.tags)..orderBy([(t) => OrderingTerm.asc(t.label)]))
         .get();
   }
+
+  Future<List<Tag>> tagsForSession(String sessionId) async {
+    final rows = await (db.select(db.sessionTags).join([
+      innerJoin(db.tags, db.tags.id.equalsExp(db.sessionTags.tagId)),
+    ])
+          ..where(db.sessionTags.sessionId.equals(sessionId)))
+        .get();
+    return rows.map((r) => r.readTable(db.tags)).toList();
+  }
 }
