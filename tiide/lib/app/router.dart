@@ -1,0 +1,14 @@
+import 'package:go_router/go_router.dart';
+
+import '../features/home/home_screen.dart';
+import '../features/session/active_screen.dart';
+import '../features/session/list_screen.dart';
+
+final router = GoRouter(
+  initialLocation: '/',
+  routes: [
+    GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+    GoRoute(path: '/active', builder: (_, _) => const ActiveScreen()),
+    GoRoute(path: '/sessions', builder: (_, _) => const SessionListScreen()),
+  ],
+);
