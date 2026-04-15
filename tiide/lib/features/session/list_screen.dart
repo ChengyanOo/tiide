@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/theme.dart';
 import '../../data/repo/session_repo.dart';
+import '../../shared/empty_state.dart';
 
 class SessionListScreen extends ConsumerWidget {
   const SessionListScreen({super.key});
@@ -20,7 +21,15 @@ class SessionListScreen extends ConsumerWidget {
             child: CircularProgressIndicator(color: TiideColors.accent)),
         error: (e, _) => Center(child: Text('$e')),
         data: (rows) {
-          if (rows.isEmpty) return const _EmptyState();
+          if (rows.isEmpty) {
+            return EmptyState(
+              icon: Icons.waves,
+              title: 'no sessions yet',
+              subtitle: 'each wave counted when you are ready',
+              actionLabel: 'START',
+              onAction: () => context.go('/'),
+            );
+          }
           return ListView.separated(
             padding: const EdgeInsets.all(TiideSpacing.m),
             itemCount: rows.length,
@@ -31,23 +40,6 @@ class SessionListScreen extends ConsumerWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(TiideSpacing.l),
-        child: Text(
-          'no sessions yet.\neach tide counted when you are ready.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: TiideColors.silver, height: 1.5),
-        ),
       ),
     );
   }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android Data Safety declarations for Google Play Console.
+
+    This file documents what data types Tiide accesses. It does NOT enforce
+    anything at runtime — it is a reference for filling out Play Console's
+    data safety form.
+
+    Summary:
+    ─────────────────────────────────────────────────────
+    Data type              | Collected | Shared | Purpose
+    ─────────────────────────────────────────────────────
+    Health (HR, HRV)       | Optional  | No     | App functionality
+    Coarse location        | Optional  | No     | App functionality
+    App activity (sessions)| Yes       | No     | App functionality
+    ─────────────────────────────────────────────────────
+
+    - All data stored locally in encrypted SQLCipher database.
+    - No analytics, advertising, or third-party SDKs in v1.
+    - Cloud sync is opt-in and deferred to a future version.
+    - Users can export and delete all data from Privacy Center.
+-->
+<data-safety/>

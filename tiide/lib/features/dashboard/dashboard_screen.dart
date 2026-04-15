@@ -8,12 +8,15 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/theme.dart';
 import '../../data/repo/dashboard_repo.dart';
+import '../../shared/empty_state.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final total = ref.watch(totalMinutesProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('dashboard'),
@@ -25,19 +28,36 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(TiideSpacing.m),
-        children: const [
-          _SummaryRow(),
-          SizedBox(height: TiideSpacing.l),
-          _TagBarChart(),
-          SizedBox(height: TiideSpacing.l),
-          _Heatmap(),
-          SizedBox(height: TiideSpacing.l),
-          _DurationDist(),
-          SizedBox(height: TiideSpacing.l),
-          _InsightCards(),
-        ],
+      body: total.when(
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: TiideColors.accent)),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (mins) {
+          if (mins == 0) {
+            return EmptyState(
+              icon: Icons.insights,
+              title: 'no data yet',
+              subtitle:
+                  'complete your first session to unlock insights and charts',
+              actionLabel: 'START',
+              onAction: () => context.go('/'),
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.all(TiideSpacing.m),
+            children: const [
+              _SummaryRow(),
+              SizedBox(height: TiideSpacing.l),
+              _TagBarChart(),
+              SizedBox(height: TiideSpacing.l),
+              _Heatmap(),
+              SizedBox(height: TiideSpacing.l),
+              _DurationDist(),
+              SizedBox(height: TiideSpacing.l),
+              _InsightCards(),
+            ],
+          );
+        },
       ),
     );
   }

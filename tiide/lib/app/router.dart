@@ -3,10 +3,13 @@ import 'package:go_router/go_router.dart';
 import '../features/dashboard/cluster_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/onboarding/onboarding_screen.dart';
 import '../features/session/active_screen.dart';
 import '../features/session/list_screen.dart';
 import '../features/session/session_detail_screen.dart';
 import '../features/settings/permission_explainer_screen.dart';
+import '../features/settings/privacy_center_screen.dart';
+import '../features/settings/settings_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -26,5 +29,10 @@ final router = GoRouter(
     ),
     GoRoute(path: '/dashboard', builder: (_, _) => const DashboardScreen()),
     GoRoute(path: '/clusters', builder: (_, _) => const ClusterScreen()),
+    GoRoute(
+        path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
+    GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+    GoRoute(
+        path: '/privacy', builder: (_, _) => const PrivacyCenterScreen()),
   ],
 );

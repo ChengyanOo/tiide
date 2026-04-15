@@ -22,10 +22,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // S4: On first launch redirect to permission explainer.
+    // S6.1: On first launch redirect to onboarding; then S4 permission explainer.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final prefs = ref.read(permissionPrefsProvider);
+      if (!prefs.onboardingComplete) {
+        context.go('/onboarding');
+        return;
+      }
       if (!prefs.explainerShown && platformSupportsEnrichment) {
         context.go('/permissions');
       }
@@ -55,6 +59,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.list_alt),
             onPressed: () => context.push('/sessions'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'settings',
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),

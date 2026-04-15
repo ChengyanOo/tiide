@@ -76,6 +76,12 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>tiide reads heart rate and HRV data around your sessions to help you spot patterns in your cravings.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>tiide does not write health data.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>tiide captures a single coarse location at the start and end of each session to help you identify trigger locations.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

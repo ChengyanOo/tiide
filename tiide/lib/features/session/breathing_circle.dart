@@ -28,6 +28,14 @@ class BreathingCircle extends StatefulWidget {
 
   @override
   State<BreathingCircle> createState() => _BreathingCircleState();
+
+  /// Accessibility label describing current state.
+  String get semanticLabel {
+    final pct = (progress * 100).round();
+    final remaining = (plannedMinutes - elapsedMinutes).clamp(0, 999).round();
+    return 'Breathing circle, $pct percent complete, '
+        'approximately $remaining minutes remaining';
+  }
 }
 
 class _BreathingCircleState extends State<BreathingCircle>
@@ -69,39 +77,75 @@ class _BreathingCircleState extends State<BreathingCircle>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _breathe,
-      builder: (context, child) {
-        // Breathe scale oscillates between 0.92 and 1.0.
-        final t = Curves.easeInOut.transform(_breathe.value);
-        final scale = 0.92 + 0.08 * t;
-        // Opacity pulse for the glow.
-        final glowOpacity = 0.08 + 0.12 * t;
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
 
-        return Transform.scale(
-          scale: scale,
-          child: SizedBox(
-            width: 240,
-            height: 240,
-            child: CustomPaint(
-              painter: _BreathingPainter(
-                progress: widget.progress,
-                glowOpacity: glowOpacity,
+    return Semantics(
+      label: widget.semanticLabel,
+      child: ExcludeSemantics(
+        child: reduceMotion
+            ? _StaticCircle(progress: widget.progress)
+            : AnimatedBuilder(
+                animation: _breathe,
+                builder: (context, child) {
+                  // Breathe scale oscillates between 0.92 and 1.0.
+                  final t = Curves.easeInOut.transform(_breathe.value);
+                  final scale = 0.92 + 0.08 * t;
+                  // Opacity pulse for the glow.
+                  final glowOpacity = 0.08 + 0.12 * t;
+
+                  return Transform.scale(
+                    scale: scale,
+                    child: SizedBox(
+                      width: 240,
+                      height: 240,
+                      child: CustomPaint(
+                        painter: _BreathingPainter(
+                          progress: widget.progress,
+                          glowOpacity: glowOpacity,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'ride it out',
+                            style: TextStyle(
+                              color: TiideColors.silver,
+                              fontSize: 16,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-              child: const Center(
-                child: Text(
-                  'ride it out',
-                  style: TextStyle(
-                    color: TiideColors.silver,
-                    fontSize: 16,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
+      ),
+    );
+  }
+}
+
+/// S6.3: Reduced-motion fallback — static circle with progress arc, no animation.
+class _StaticCircle extends StatelessWidget {
+  const _StaticCircle({required this.progress});
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 240,
+      height: 240,
+      child: CustomPaint(
+        painter: _BreathingPainter(progress: progress, glowOpacity: 0.15),
+        child: const Center(
+          child: Text(
+            'ride it out',
+            style: TextStyle(
+              color: TiideColors.silver,
+              fontSize: 16,
+              letterSpacing: 1.2,
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
