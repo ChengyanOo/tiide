@@ -35,7 +35,14 @@ class SessionController {
     return s;
   }
 
+  /// Max allowed extensions per session.
+  static const maxExtensions = 3;
+
   Future<Session> extend(String id, {int minutes = 5}) async {
+    final current = await repo.byId(id);
+    if (current != null && current.extensionCount >= maxExtensions) {
+      return current;
+    }
     final s = await repo.extend(id: id, minutes: minutes);
     await _scheduleEnd(s);
     return s;

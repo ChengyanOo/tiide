@@ -9,6 +9,10 @@ import '../../core/session_controller.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
 import '../tag/tag_picker_sheet.dart';
+import 'breathing_circle.dart';
+
+/// Maximum number of +5-min extensions allowed.
+const kMaxExtensions = 3;
 
 class ActiveScreen extends ConsumerStatefulWidget {
   const ActiveScreen({super.key});
@@ -56,17 +60,27 @@ class _ActiveScreenState extends ConsumerState<ActiveScreen> {
   }
 }
 
-class _ActiveBody extends ConsumerWidget {
+class _ActiveBody extends ConsumerStatefulWidget {
   const _ActiveBody({required this.session});
   final Session session;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ActiveBody> createState() => _ActiveBodyState();
+}
+
+class _ActiveBodyState extends ConsumerState<_ActiveBody> {
+  bool _showTime = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final session = widget.session;
     final planned = Duration(minutes: session.plannedDurationMin);
     final elapsed = DateTime.now().difference(session.startedAt);
     final progress = (elapsed.inMilliseconds / planned.inMilliseconds)
         .clamp(0.0, 1.0)
         .toDouble();
+    final elapsedMinutes = elapsed.inMilliseconds / 60000.0;
+    final canExtend = session.extensionCount < kMaxExtensions;
 
     return Padding(
       padding: const EdgeInsets.all(TiideSpacing.l),
@@ -74,40 +88,39 @@ class _ActiveBody extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Spacer(),
+          // S3.1 + S3.2: Calming breathing circle — long-press reveals time.
           Center(
-            child: SizedBox(
-              width: 220,
-              height: 220,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 220,
-                    height: 220,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 8,
-                      backgroundColor: TiideColors.midDark,
-                      color: TiideColors.accent,
+            child: GestureDetector(
+              onLongPressStart: (_) => setState(() => _showTime = true),
+              onLongPressEnd: (_) => setState(() => _showTime = false),
+              child: _showTime
+                  ? _TimeReveal(elapsed: elapsed, planned: planned)
+                  : BreathingCircle(
+                      progress: progress,
+                      elapsedMinutes: elapsedMinutes,
+                      plannedMinutes: session.plannedDurationMin,
                     ),
-                  ),
-                  const Text('ride it out',
-                      style: TextStyle(
-                          color: TiideColors.silver,
-                          fontSize: 16,
-                          letterSpacing: 1.2)),
-                ],
-              ),
             ),
           ),
-          const SizedBox(height: TiideSpacing.l),
-          LinearProgressIndicator(
-            value: progress,
-            minHeight: 4,
-            backgroundColor: TiideColors.midDark,
-            color: TiideColors.accent,
-          ),
           const Spacer(),
+
+          // S3.4: Extend +5 button with cap.
+          if (canExtend)
+            FilledButton(
+              onPressed: () => _extend(context, ref, session),
+              child: const Text('+5 MINUTES'),
+            )
+          else
+            Center(
+              child: Text(
+                'you\'ve got this — max time reached',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: TiideColors.silver),
+              ),
+            ),
+          const SizedBox(height: TiideSpacing.s),
           ElevatedButton(
             onPressed: () => _stop(context, ref, session, elapsed),
             child: const Text('STOP'),
@@ -116,6 +129,11 @@ class _ActiveBody extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _extend(
+      BuildContext context, WidgetRef ref, Session s) async {
+    await ref.read(sessionControllerProvider).extend(s.id, minutes: 5);
   }
 
   Future<void> _stop(
@@ -140,5 +158,38 @@ class _ActiveBody extends ConsumerWidget {
           tagIds: picked,
         );
     if (context.mounted) context.go('/');
+  }
+}
+
+/// Shown on long-press: remaining time in a soft style.
+class _TimeReveal extends StatelessWidget {
+  const _TimeReveal({required this.elapsed, required this.planned});
+  final Duration elapsed;
+  final Duration planned;
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = planned - elapsed;
+    final mins = remaining.inMinutes.clamp(0, 999);
+    final secs = (remaining.inSeconds % 60).clamp(0, 59);
+    final label = remaining.isNegative
+        ? 'done'
+        : '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+
+    return SizedBox(
+      width: 240,
+      height: 240,
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: TiideColors.silver,
+            fontSize: 32,
+            fontWeight: FontWeight.w300,
+            letterSpacing: 2,
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -5,13 +5,29 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/session_controller.dart';
 import '../../core/theme.dart';
+import '../../data/db/database.dart';
+import '../session/retro_edit_sheet.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _retroShown = false;
+
+  @override
+  Widget build(BuildContext context) {
     final active = ref.watch(activeSessionProvider);
+
+    // S3.3: detect orphaned session and show retro-edit sheet.
+    active.whenData((s) {
+      if (s != null && !_retroShown) {
+        _maybeShowRetroEdit(context, s);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -35,18 +51,34 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: TiideSpacing.xl),
               active.when(
-                data: (s) => s == null
-                    ? _StartButton(
-                        onPressed: () async {
-                          await ref
-                              .read(sessionControllerProvider)
-                              .startSession();
-                          if (context.mounted) context.push('/active');
-                        },
-                      )
-                    : _ResumeButton(onPressed: () => context.push('/active')),
-                loading: () =>
-                    const CircularProgressIndicator(color: TiideColors.accent),
+                data: (s) {
+                  if (s == null) {
+                    return _StartButton(
+                      onPressed: () async {
+                        await ref
+                            .read(sessionControllerProvider)
+                            .startSession();
+                        if (context.mounted) context.push('/active');
+                      },
+                    );
+                  }
+                  // If it's an orphaned session (past grace), retro-edit
+                  // handles it. Otherwise show resume.
+                  if (_isOrphaned(s)) {
+                    return _StartButton(
+                      onPressed: () async {
+                        await ref
+                            .read(sessionControllerProvider)
+                            .startSession();
+                        if (context.mounted) context.push('/active');
+                      },
+                    );
+                  }
+                  return _ResumeButton(
+                      onPressed: () => context.push('/active'));
+                },
+                loading: () => const CircularProgressIndicator(
+                    color: TiideColors.accent),
                 error: (e, _) => Text('$e'),
               ),
             ],
@@ -54,6 +86,29 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// An active session is "orphaned" when now > startedAt + planned + 1 h.
+  bool _isOrphaned(Session s) {
+    final grace = s.startedAt
+        .add(Duration(minutes: s.plannedDurationMin))
+        .add(const Duration(hours: 1));
+    return DateTime.now().isAfter(grace);
+  }
+
+  void _maybeShowRetroEdit(BuildContext context, Session s) {
+    if (!_isOrphaned(s)) return;
+    _retroShown = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (_) => RetroEditSheet(session: s),
+      );
+    });
   }
 }
 
