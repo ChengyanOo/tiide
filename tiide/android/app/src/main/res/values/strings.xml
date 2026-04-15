@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tiide_widget_description">Start a tiide distress session.</string>
+    <string name="tiide_tile_label">tiide</string>
+</resources>

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
+import '../../core/session_controller.dart';
 import '../../core/theme.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -37,7 +38,9 @@ class HomeScreen extends ConsumerWidget {
                 data: (s) => s == null
                     ? _StartButton(
                         onPressed: () async {
-                          await ref.read(sessionRepoProvider).create();
+                          await ref
+                              .read(sessionControllerProvider)
+                              .startSession();
                           if (context.mounted) context.push('/active');
                         },
                       )

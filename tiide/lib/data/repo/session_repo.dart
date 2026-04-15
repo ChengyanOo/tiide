@@ -112,6 +112,23 @@ class SessionRepo {
     return [for (final s in rows) SessionWithTags(s, byId[s.id] ?? const [])];
   }
 
+  Future<Session> extend({required String id, int minutes = 5}) async {
+    final s = await (db.select(db.sessions)..where((r) => r.id.equals(id)))
+        .getSingle();
+    await (db.update(db.sessions)..where((r) => r.id.equals(id))).write(
+      SessionsCompanion(
+        plannedDurationMin: Value(s.plannedDurationMin + minutes),
+        extensionCount: Value(s.extensionCount + 1),
+      ),
+    );
+    return (db.select(db.sessions)..where((r) => r.id.equals(id))).getSingle();
+  }
+
+  Future<Session?> byId(String id) {
+    return (db.select(db.sessions)..where((r) => r.id.equals(id)))
+        .getSingleOrNull();
+  }
+
   Future<List<Tag>> allTags() {
     return (db.select(db.tags)..orderBy([(t) => OrderingTerm.asc(t.label)]))
         .get();

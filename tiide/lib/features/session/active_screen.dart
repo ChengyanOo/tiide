@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
+import '../../core/session_controller.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
 import '../tag/tag_picker_sheet.dart';
@@ -133,7 +134,7 @@ class _ActiveBody extends ConsumerWidget {
     final minutes = elapsed.inSeconds <= 0
         ? 1
         : (elapsed.inSeconds / 60).ceil().clamp(1, s.plannedDurationMin);
-    await ref.read(sessionRepoProvider).finalize(
+    await ref.read(sessionControllerProvider).finalize(
           id: s.id,
           actualDurationMin: minutes,
           tagIds: picked,

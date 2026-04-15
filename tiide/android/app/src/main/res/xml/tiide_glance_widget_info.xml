@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/tiide_widget_description"
+    android:initialKeyguardLayout="@layout/tiide_glance_initial"
+    android:initialLayout="@layout/tiide_glance_initial"
+    android:minHeight="40dp"
+    android:minWidth="40dp"
+    android:previewImage="@mipmap/ic_launcher"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellHeight="1"
+    android:targetCellWidth="2"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="keyguard|home_screen" />
