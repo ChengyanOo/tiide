@@ -6,6 +6,7 @@ import '../../app/providers.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
 import '../../data/repo/session_repo.dart';
+import 'breathing_circle.dart';
 
 /// Detail screen for a completed session, showing tags + biometric data.
 class SessionDetailScreen extends ConsumerWidget {
@@ -34,6 +35,13 @@ class SessionDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(TiideSpacing.m),
             children: [
               _SessionHeader(row: row),
+              if (row.session.note != null &&
+                  row.session.note!.isNotEmpty) ...[
+                const SizedBox(height: TiideSpacing.m),
+                _NoteCard(note: row.session.note!),
+              ],
+              const SizedBox(height: TiideSpacing.m),
+              _BreathingReplay(session: row.session),
               const SizedBox(height: TiideSpacing.l),
               snapshotAsync.when(
                 data: (snap) => snap != null
@@ -356,6 +364,112 @@ class _GeoSection extends StatelessWidget {
               ),
             ),
           ),
+      ],
+    );
+  }
+}
+
+// ----- Note card (S5.5) -----
+
+class _NoteCard extends StatelessWidget {
+  const _NoteCard({required this.note});
+  final String note;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(TiideSpacing.m),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.notes, color: TiideColors.silver, size: 18),
+            const SizedBox(width: TiideSpacing.s),
+            Expanded(
+              child: Text(note,
+                  style: const TextStyle(
+                      color: TiideColors.silver, fontSize: 14, height: 1.4)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ----- Breathing circle replay (S5.5) -----
+
+class _BreathingReplay extends StatefulWidget {
+  const _BreathingReplay({required this.session});
+  final Session session;
+
+  @override
+  State<_BreathingReplay> createState() => _BreathingReplayState();
+}
+
+class _BreathingReplayState extends State<_BreathingReplay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  bool _playing = false;
+
+  int get _durationMin =>
+      widget.session.actualDurationMin ?? widget.session.plannedDurationMin;
+
+  @override
+  void initState() {
+    super.initState();
+    // Replay compressed: 1 min per 5 min of actual, min 10s.
+    final replaySeconds = (_durationMin / 5 * 60).clamp(10, 360).round();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: replaySeconds),
+    );
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() => _playing = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() {
+      if (_playing) {
+        _controller.stop();
+        _playing = false;
+      } else {
+        if (_controller.isCompleted) _controller.reset();
+        _controller.forward();
+        _playing = true;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (_, _) {
+            return BreathingCircle(
+              progress: _controller.value,
+              elapsedMinutes: _controller.value * _durationMin,
+              plannedMinutes: _durationMin,
+            );
+          },
+        ),
+        const SizedBox(height: TiideSpacing.s),
+        FilledButton.icon(
+          onPressed: _toggle,
+          icon: Icon(_playing ? Icons.pause : Icons.play_arrow, size: 18),
+          label: Text(_playing ? 'PAUSE' : 'REPLAY'),
+        ),
       ],
     );
   }

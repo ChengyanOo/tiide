@@ -1,5 +1,7 @@
 import 'package:go_router/go_router.dart';
 
+import '../features/dashboard/cluster_screen.dart';
+import '../features/dashboard/dashboard_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/session/active_screen.dart';
 import '../features/session/list_screen.dart';
@@ -22,5 +24,7 @@ final router = GoRouter(
       path: '/permissions',
       builder: (_, _) => const PermissionExplainerScreen(),
     ),
+    GoRoute(path: '/dashboard', builder: (_, _) => const DashboardScreen()),
+    GoRoute(path: '/clusters', builder: (_, _) => const ClusterScreen()),
   ],
 );

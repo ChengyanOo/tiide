@@ -72,6 +72,7 @@ class GeoPoints extends Table {
   RealColumn get lat => real()();
   RealColumn get lng => real()();
   RealColumn get accuracyM => real().nullable()();
+  TextColumn get clusterId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -117,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -131,6 +132,9 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(biometricSamples);
             await m.createTable(geoPoints);
             await m.createTable(geoClusters);
+          }
+          if (from < 3) {
+            await m.addColumn(geoPoints, geoPoints.clusterId);
           }
         },
       );

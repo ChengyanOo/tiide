@@ -48,6 +48,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: const Text('tiide'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.insights),
+            tooltip: 'dashboard',
+            onPressed: () => context.push('/dashboard'),
+          ),
+          IconButton(
             icon: const Icon(Icons.list_alt),
             onPressed: () => context.push('/sessions'),
           ),

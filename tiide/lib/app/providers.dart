@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/geo_clustering.dart';
 import '../data/db/database.dart';
+import '../data/repo/dashboard_repo.dart';
 import '../data/repo/enrichment_repo.dart';
 import '../data/repo/session_repo.dart';
 
@@ -16,6 +18,14 @@ final sessionRepoProvider = Provider<SessionRepo>((ref) {
 
 final enrichmentRepoProvider = Provider<EnrichmentRepo>((ref) {
   return EnrichmentRepo(ref.watch(databaseProvider));
+});
+
+final dashboardRepoProvider = Provider<DashboardRepo>((ref) {
+  return DashboardRepo(ref.watch(databaseProvider));
+});
+
+final geoClusteringProvider = Provider<GeoClusteringService>((ref) {
+  return GeoClusteringService(ref.watch(databaseProvider));
 });
 
 final activeSessionProvider = StreamProvider<Session?>((ref) {
@@ -54,4 +64,38 @@ final biometricSamplesProvider =
 final geoPointsProvider =
     FutureProvider.family<List<GeoPoint>, String>((ref, sessionId) {
   return ref.watch(enrichmentRepoProvider).geoPointsForSession(sessionId);
+});
+
+// S5: Dashboard providers.
+
+final weeklyCountProvider = StreamProvider<int>((ref) {
+  return ref.watch(dashboardRepoProvider).watchWeeklyCount();
+});
+
+final totalMinutesProvider = StreamProvider<int>((ref) {
+  return ref.watch(dashboardRepoProvider).watchTotalMinutes();
+});
+
+final streakProvider = StreamProvider<int>((ref) {
+  return ref.watch(dashboardRepoProvider).watchStreak();
+});
+
+final tagCountsProvider = StreamProvider<List<TagCount>>((ref) {
+  return ref.watch(dashboardRepoProvider).watchTagCounts();
+});
+
+final heatmapProvider = StreamProvider<List<HeatmapCell>>((ref) {
+  return ref.watch(dashboardRepoProvider).watchHeatmap();
+});
+
+final durationDistProvider = StreamProvider<List<DurationBucket>>((ref) {
+  return ref.watch(dashboardRepoProvider).watchDurationDist();
+});
+
+final insightsProvider = FutureProvider<List<Insight>>((ref) {
+  return ref.watch(dashboardRepoProvider).computeInsights();
+});
+
+final geoClustersProvider = StreamProvider<List<GeoCluster>>((ref) {
+  return ref.watch(dashboardRepoProvider).watchClusters();
 });

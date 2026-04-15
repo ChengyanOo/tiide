@@ -1856,6 +1856,17 @@ class $GeoPointsTable extends GeoPoints
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _clusterIdMeta = const VerificationMeta(
+    'clusterId',
+  );
+  @override
+  late final GeneratedColumn<String> clusterId = GeneratedColumn<String>(
+    'cluster_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1864,6 +1875,7 @@ class $GeoPointsTable extends GeoPoints
     lat,
     lng,
     accuracyM,
+    clusterId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1920,6 +1932,12 @@ class $GeoPointsTable extends GeoPoints
         accuracyM.isAcceptableOrUnknown(data['accuracy_m']!, _accuracyMMeta),
       );
     }
+    if (data.containsKey('cluster_id')) {
+      context.handle(
+        _clusterIdMeta,
+        clusterId.isAcceptableOrUnknown(data['cluster_id']!, _clusterIdMeta),
+      );
+    }
     return context;
   }
 
@@ -1953,6 +1971,10 @@ class $GeoPointsTable extends GeoPoints
         DriftSqlType.double,
         data['${effectivePrefix}accuracy_m'],
       ),
+      clusterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cluster_id'],
+      ),
     );
   }
 
@@ -1969,6 +1991,7 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
   final double lat;
   final double lng;
   final double? accuracyM;
+  final String? clusterId;
   const GeoPoint({
     required this.id,
     required this.sessionId,
@@ -1976,6 +1999,7 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
     required this.lat,
     required this.lng,
     this.accuracyM,
+    this.clusterId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1987,6 +2011,9 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
     map['lng'] = Variable<double>(lng);
     if (!nullToAbsent || accuracyM != null) {
       map['accuracy_m'] = Variable<double>(accuracyM);
+    }
+    if (!nullToAbsent || clusterId != null) {
+      map['cluster_id'] = Variable<String>(clusterId);
     }
     return map;
   }
@@ -2001,6 +2028,9 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
       accuracyM: accuracyM == null && nullToAbsent
           ? const Value.absent()
           : Value(accuracyM),
+      clusterId: clusterId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clusterId),
     );
   }
 
@@ -2016,6 +2046,7 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
       lat: serializer.fromJson<double>(json['lat']),
       lng: serializer.fromJson<double>(json['lng']),
       accuracyM: serializer.fromJson<double?>(json['accuracyM']),
+      clusterId: serializer.fromJson<String?>(json['clusterId']),
     );
   }
   @override
@@ -2028,6 +2059,7 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
       'lat': serializer.toJson<double>(lat),
       'lng': serializer.toJson<double>(lng),
       'accuracyM': serializer.toJson<double?>(accuracyM),
+      'clusterId': serializer.toJson<String?>(clusterId),
     };
   }
 
@@ -2038,6 +2070,7 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
     double? lat,
     double? lng,
     Value<double?> accuracyM = const Value.absent(),
+    Value<String?> clusterId = const Value.absent(),
   }) => GeoPoint(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
@@ -2045,6 +2078,7 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
     lat: lat ?? this.lat,
     lng: lng ?? this.lng,
     accuracyM: accuracyM.present ? accuracyM.value : this.accuracyM,
+    clusterId: clusterId.present ? clusterId.value : this.clusterId,
   );
   GeoPoint copyWithCompanion(GeoPointsCompanion data) {
     return GeoPoint(
@@ -2054,6 +2088,7 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
       lat: data.lat.present ? data.lat.value : this.lat,
       lng: data.lng.present ? data.lng.value : this.lng,
       accuracyM: data.accuracyM.present ? data.accuracyM.value : this.accuracyM,
+      clusterId: data.clusterId.present ? data.clusterId.value : this.clusterId,
     );
   }
 
@@ -2065,13 +2100,15 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
           ..write('kind: $kind, ')
           ..write('lat: $lat, ')
           ..write('lng: $lng, ')
-          ..write('accuracyM: $accuracyM')
+          ..write('accuracyM: $accuracyM, ')
+          ..write('clusterId: $clusterId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, sessionId, kind, lat, lng, accuracyM);
+  int get hashCode =>
+      Object.hash(id, sessionId, kind, lat, lng, accuracyM, clusterId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2081,7 +2118,8 @@ class GeoPoint extends DataClass implements Insertable<GeoPoint> {
           other.kind == this.kind &&
           other.lat == this.lat &&
           other.lng == this.lng &&
-          other.accuracyM == this.accuracyM);
+          other.accuracyM == this.accuracyM &&
+          other.clusterId == this.clusterId);
 }
 
 class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
@@ -2091,6 +2129,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
   final Value<double> lat;
   final Value<double> lng;
   final Value<double?> accuracyM;
+  final Value<String?> clusterId;
   final Value<int> rowid;
   const GeoPointsCompanion({
     this.id = const Value.absent(),
@@ -2099,6 +2138,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
     this.lat = const Value.absent(),
     this.lng = const Value.absent(),
     this.accuracyM = const Value.absent(),
+    this.clusterId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GeoPointsCompanion.insert({
@@ -2108,6 +2148,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
     required double lat,
     required double lng,
     this.accuracyM = const Value.absent(),
+    this.clusterId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        sessionId = Value(sessionId),
@@ -2121,6 +2162,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
     Expression<double>? lat,
     Expression<double>? lng,
     Expression<double>? accuracyM,
+    Expression<String>? clusterId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2130,6 +2172,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
       if (lat != null) 'lat': lat,
       if (lng != null) 'lng': lng,
       if (accuracyM != null) 'accuracy_m': accuracyM,
+      if (clusterId != null) 'cluster_id': clusterId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2141,6 +2184,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
     Value<double>? lat,
     Value<double>? lng,
     Value<double?>? accuracyM,
+    Value<String?>? clusterId,
     Value<int>? rowid,
   }) {
     return GeoPointsCompanion(
@@ -2150,6 +2194,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
       accuracyM: accuracyM ?? this.accuracyM,
+      clusterId: clusterId ?? this.clusterId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2175,6 +2220,9 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
     if (accuracyM.present) {
       map['accuracy_m'] = Variable<double>(accuracyM.value);
     }
+    if (clusterId.present) {
+      map['cluster_id'] = Variable<String>(clusterId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2190,6 +2238,7 @@ class GeoPointsCompanion extends UpdateCompanion<GeoPoint> {
           ..write('lat: $lat, ')
           ..write('lng: $lng, ')
           ..write('accuracyM: $accuracyM, ')
+          ..write('clusterId: $clusterId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4598,6 +4647,7 @@ typedef $$GeoPointsTableCreateCompanionBuilder =
       required double lat,
       required double lng,
       Value<double?> accuracyM,
+      Value<String?> clusterId,
       Value<int> rowid,
     });
 typedef $$GeoPointsTableUpdateCompanionBuilder =
@@ -4608,6 +4658,7 @@ typedef $$GeoPointsTableUpdateCompanionBuilder =
       Value<double> lat,
       Value<double> lng,
       Value<double?> accuracyM,
+      Value<String?> clusterId,
       Value<int> rowid,
     });
 
@@ -4669,6 +4720,11 @@ class $$GeoPointsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get clusterId => $composableBuilder(
+    column: $table.clusterId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$SessionsTableFilterComposer get sessionId {
     final $$SessionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4727,6 +4783,11 @@ class $$GeoPointsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get clusterId => $composableBuilder(
+    column: $table.clusterId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$SessionsTableOrderingComposer get sessionId {
     final $$SessionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4774,6 +4835,9 @@ class $$GeoPointsTableAnnotationComposer
 
   GeneratedColumn<double> get accuracyM =>
       $composableBuilder(column: $table.accuracyM, builder: (column) => column);
+
+  GeneratedColumn<String> get clusterId =>
+      $composableBuilder(column: $table.clusterId, builder: (column) => column);
 
   $$SessionsTableAnnotationComposer get sessionId {
     final $$SessionsTableAnnotationComposer composer = $composerBuilder(
@@ -4833,6 +4897,7 @@ class $$GeoPointsTableTableManager
                 Value<double> lat = const Value.absent(),
                 Value<double> lng = const Value.absent(),
                 Value<double?> accuracyM = const Value.absent(),
+                Value<String?> clusterId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GeoPointsCompanion(
                 id: id,
@@ -4841,6 +4906,7 @@ class $$GeoPointsTableTableManager
                 lat: lat,
                 lng: lng,
                 accuracyM: accuracyM,
+                clusterId: clusterId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -4851,6 +4917,7 @@ class $$GeoPointsTableTableManager
                 required double lat,
                 required double lng,
                 Value<double?> accuracyM = const Value.absent(),
+                Value<String?> clusterId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => GeoPointsCompanion.insert(
                 id: id,
@@ -4859,6 +4926,7 @@ class $$GeoPointsTableTableManager
                 lat: lat,
                 lng: lng,
                 accuracyM: accuracyM,
+                clusterId: clusterId,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

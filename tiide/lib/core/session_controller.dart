@@ -9,6 +9,7 @@ import '../app/providers.dart';
 import '../data/db/database.dart';
 import '../data/repo/enrichment_repo.dart';
 import '../data/repo/session_repo.dart';
+import 'geo_clustering.dart';
 import 'health_service.dart';
 import 'location_service.dart';
 import 'notifications.dart';
@@ -22,10 +23,11 @@ const kWidgetStartedAtKey = 'tiide.startedAt';
 const kWidgetPlannedMinKey = 'tiide.plannedMin';
 
 class SessionController {
-  SessionController(this.repo, this.enrichmentRepo, this.permPrefs);
+  SessionController(this.repo, this.enrichmentRepo, this.permPrefs, this.clustering);
   final SessionRepo repo;
   final EnrichmentRepo enrichmentRepo;
   final PermissionPrefs permPrefs;
+  final GeoClusteringService clustering;
 
   Future<Session> startSession({int plannedMin = 15}) async {
     final existing = await repo.activeSession();
@@ -77,6 +79,11 @@ class SessionController {
 
     // S4: Capture end-session biometric + end location.
     await _captureEndEnrichment(id);
+
+    // S5: Re-cluster geo points after new data.
+    if (permPrefs.geoOptIn) {
+      await clustering.runClustering();
+    }
   }
 
   // ---- S4: Enrichment capture ----
@@ -182,5 +189,6 @@ final sessionControllerProvider = Provider<SessionController>((ref) {
     ref.watch(sessionRepoProvider),
     ref.watch(enrichmentRepoProvider),
     ref.watch(permissionPrefsProvider),
+    ref.watch(geoClusteringProvider),
   );
 });
