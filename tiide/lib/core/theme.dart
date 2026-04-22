@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 
 class TiideColors {
-  static const nearBlack = Color(0xFF121212);
-  static const darkSurface = Color(0xFF181818);
-  static const midDark = Color(0xFF1F1F1F);
-  static const darkCard = Color(0xFF252525);
-  static const borderGray = Color(0xFF4D4D4D);
-  static const lightBorder = Color(0xFF7C7C7C);
-  static const silver = Color(0xFFB3B3B3);
-  static const nearWhite = Color(0xFFCBCBCB);
-  static const white = Color(0xFFFFFFFF);
-  static const accent = Color(0xFF1ED760);
-  static const accentBorder = Color(0xFF1DB954);
-  static const negative = Color(0xFFF3727F);
-  static const warning = Color(0xFFFFA42B);
+  // Redesign palette — warm cream / clay
+  static const bg = Color(0xFFF5EFE3);
+  static const surface = Color(0xFFFBF6EC);
+  static const surfaceElev = Color(0xFFEFE7D6);
+  static const hair = Color(0xFFDCD2BE);
+  static const hair2 = Color(0xFFE8DFCD);
+
+  static const ink = Color(0xFF2A2520);
+  static const ink2 = Color(0xFF4A433A);
+  static const ink3 = Color(0xFF7A6F5F);
+  static const ink4 = Color(0xFFA89B84);
+
+  static const accent = Color(0xFFB07050); // warm clay
+  static const accentSoft = Color(0x22B07050);
+
+  static const negative = Color(0xFFC5534B);
+  static const warning = Color(0xFFC8892A);
 }
 
 class TiideSpacing {
@@ -25,97 +29,177 @@ class TiideSpacing {
 }
 
 class TiideRadius {
-  static const card = 8.0;
+  static const card = 14.0;
   static const pill = 9999.0;
-  static const largePill = 500.0;
 }
 
+const String tiideSerif = 'Georgia';
+
 ThemeData buildTiideTheme() {
-  const base = ColorScheme.dark(
-    surface: TiideColors.nearBlack,
+  const base = ColorScheme.light(
+    surface: TiideColors.bg,
     primary: TiideColors.accent,
-    onPrimary: Colors.black,
-    secondary: TiideColors.silver,
-    onSurface: TiideColors.white,
+    onPrimary: Colors.white,
+    secondary: TiideColors.ink3,
+    onSurface: TiideColors.ink,
     error: TiideColors.negative,
   );
 
   return ThemeData(
     useMaterial3: true,
     colorScheme: base,
-    scaffoldBackgroundColor: TiideColors.nearBlack,
-    fontFamily: 'Helvetica Neue',
+    scaffoldBackgroundColor: TiideColors.bg,
+    fontFamily: tiideSerif,
     textTheme: const TextTheme(
+      displayMedium: TextStyle(
+        fontSize: 34,
+        fontStyle: FontStyle.italic,
+        fontWeight: FontWeight.w300,
+        color: TiideColors.ink,
+        height: 1.15,
+      ),
       headlineMedium: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
-        color: TiideColors.white,
+        fontSize: 26,
+        fontStyle: FontStyle.italic,
+        fontWeight: FontWeight.w300,
+        color: TiideColors.ink,
+        height: 1.2,
       ),
       titleLarge: TextStyle(
         fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: TiideColors.white,
-        height: 1.3,
+        fontWeight: FontWeight.w500,
+        color: TiideColors.ink,
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: TiideColors.white,
+        color: TiideColors.ink,
+        height: 1.5,
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
-        fontWeight: FontWeight.w400,
-        color: TiideColors.silver,
+        color: TiideColors.ink2,
+        height: 1.55,
       ),
       labelLarge: TextStyle(
         fontSize: 14,
-        fontWeight: FontWeight.w700,
-        color: TiideColors.white,
+        fontWeight: FontWeight.w500,
+        color: Colors.white,
+        letterSpacing: 0.4,
+      ),
+      labelSmall: TextStyle(
+        fontSize: 11,
+        color: TiideColors.ink4,
         letterSpacing: 1.4,
       ),
     ),
     cardTheme: CardThemeData(
-      color: TiideColors.darkSurface,
+      color: TiideColors.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(TiideRadius.card),
+        side: const BorderSide(color: TiideColors.hair2, width: 1),
       ),
       margin: EdgeInsets.zero,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: TiideColors.accent,
-        foregroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        shape: const StadiumBorder(),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TiideRadius.card),
+        ),
         textStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.4,
+          fontFamily: tiideSerif,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.2,
         ),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: TiideColors.midDark,
-        foregroundColor: TiideColors.white,
+        backgroundColor: TiideColors.surfaceElev,
+        foregroundColor: TiideColors.ink,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TiideRadius.card),
+        ),
       ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: TiideColors.ink3),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: TiideColors.nearBlack,
-      foregroundColor: TiideColors.white,
+      backgroundColor: TiideColors.bg,
+      foregroundColor: TiideColors.ink,
       elevation: 0,
-      centerTitle: false,
-    ),
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: TiideColors.darkSurface,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontFamily: tiideSerif,
+        fontSize: 17,
+        fontStyle: FontStyle.italic,
+        fontWeight: FontWeight.w400,
+        color: TiideColors.ink,
       ),
     ),
-    dividerColor: TiideColors.borderGray,
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: TiideColors.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected)
+            ? Colors.white
+            : TiideColors.surface,
+      ),
+      trackColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected)
+            ? TiideColors.accent
+            : TiideColors.hair,
+      ),
+      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+    ),
+    dividerColor: TiideColors.hair2,
   );
+}
+
+/// Little dot logo used beside the "tiide" wordmark.
+class TiideLogo extends StatelessWidget {
+  const TiideLogo({super.key, this.size = 28});
+  final double size;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          'tiide',
+          style: TextStyle(
+            fontFamily: tiideSerif,
+            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w400,
+            fontSize: size,
+            color: TiideColors.ink,
+            height: 1,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(left: size * 0.12, bottom: size * 0.1),
+          child: Container(
+            width: size * 0.18,
+            height: size * 0.18,
+            decoration: const BoxDecoration(
+              color: TiideColors.accent,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -51,7 +51,7 @@ class _ActiveScreenState extends ConsumerState<ActiveScreen> {
           if (s == null) {
             return const Center(
                 child: Text('no active session',
-                    style: TextStyle(color: TiideColors.silver)));
+                    style: TextStyle(color: TiideColors.ink3)));
           }
           return _ActiveBody(session: s);
         },
@@ -117,7 +117,7 @@ class _ActiveBodyState extends ConsumerState<_ActiveBody> {
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium
-                    ?.copyWith(color: TiideColors.silver),
+                    ?.copyWith(color: TiideColors.ink3),
               ),
             ),
           const SizedBox(height: TiideSpacing.s),
@@ -183,7 +183,7 @@ class _TimeReveal extends StatelessWidget {
         child: Text(
           label,
           style: const TextStyle(
-            color: TiideColors.silver,
+            color: TiideColors.ink3,
             fontSize: 32,
             fontWeight: FontWeight.w300,
             letterSpacing: 2,

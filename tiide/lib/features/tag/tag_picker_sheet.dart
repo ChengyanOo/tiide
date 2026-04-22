@@ -46,12 +46,12 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
                       onSelected: (v) => setState(() {
                         v ? _selected.add(t.id) : _selected.remove(t.id);
                       }),
-                      backgroundColor: TiideColors.midDark,
+                      backgroundColor: TiideColors.surfaceElev,
                       selectedColor: TiideColors.accent,
                       labelStyle: TextStyle(
                           color: _selected.contains(t.id)
                               ? Colors.black
-                              : TiideColors.white),
+                              : TiideColors.ink),
                       shape: const StadiumBorder(),
                       side: BorderSide.none,
                       showCheckmark: false,
@@ -66,7 +66,7 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
                     onPressed: () =>
                         Navigator.of(context).pop(<String>[]),
                     child: const Text('skip',
-                        style: TextStyle(color: TiideColors.silver)),
+                        style: TextStyle(color: TiideColors.ink3)),
                   ),
                   const SizedBox(width: TiideSpacing.s),
                   ElevatedButton(

@@ -107,7 +107,7 @@ class _BreathingCircleState extends State<BreathingCircle>
                           child: Text(
                             'ride it out',
                             style: TextStyle(
-                              color: TiideColors.silver,
+                              color: TiideColors.ink3,
                               fontSize: 16,
                               letterSpacing: 1.2,
                             ),
@@ -139,7 +139,7 @@ class _StaticCircle extends StatelessWidget {
           child: Text(
             'ride it out',
             style: TextStyle(
-              color: TiideColors.silver,
+              color: TiideColors.ink3,
               fontSize: 16,
               letterSpacing: 1.2,
             ),
@@ -171,7 +171,7 @@ class _BreathingPainter extends CustomPainter {
 
     // Track ring.
     final trackPaint = Paint()
-      ..color = TiideColors.midDark
+      ..color = TiideColors.surfaceElev
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
       ..strokeCap = StrokeCap.round;

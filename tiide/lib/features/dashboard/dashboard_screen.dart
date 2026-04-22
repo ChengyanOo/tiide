@@ -132,11 +132,11 @@ class _MetricCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(unit,
                 style: const TextStyle(
-                    color: TiideColors.silver, fontSize: 11)),
+                    color: TiideColors.ink3, fontSize: 11)),
             const SizedBox(height: TiideSpacing.xs),
             Text(label,
                 style: const TextStyle(
-                    color: TiideColors.silver,
+                    color: TiideColors.ink3,
                     fontSize: 11,
                     fontWeight: FontWeight.w600)),
           ],
@@ -195,7 +195,7 @@ class _TagBarChart extends ConsumerWidget {
                           }
                           return Text(tags[idx].label,
                               style: const TextStyle(
-                                  color: TiideColors.silver, fontSize: 10));
+                                  color: TiideColors.ink3, fontSize: 10));
                         },
                       ),
                     ),
@@ -271,7 +271,7 @@ class _Heatmap extends ConsumerWidget {
                             width: 30,
                             child: Text(_days[d],
                                 style: const TextStyle(
-                                    color: TiideColors.silver, fontSize: 9)),
+                                    color: TiideColors.ink3, fontSize: 9)),
                           ),
                       ],
                     ),
@@ -285,7 +285,7 @@ class _Heatmap extends ConsumerWidget {
                             child: h % 4 == 0
                                 ? Text('$h',
                                     style: const TextStyle(
-                                        color: TiideColors.silver, fontSize: 8),
+                                        color: TiideColors.ink3, fontSize: 8),
                                     textAlign: TextAlign.center)
                                 : const SizedBox.shrink(),
                           ),
@@ -312,10 +312,10 @@ class _Heatmap extends ConsumerWidget {
   }
 
   Color _heatColor(int count, int maxCount) {
-    if (count == 0 || maxCount == 0) return TiideColors.midDark;
+    if (count == 0 || maxCount == 0) return TiideColors.surfaceElev;
     final t = count / maxCount;
     return Color.lerp(
-      TiideColors.midDark,
+      TiideColors.surfaceElev,
       TiideColors.accent,
       t,
     )!;
@@ -371,7 +371,7 @@ class _DurationDist extends ConsumerWidget {
                           }
                           return Text('${buckets[idx].minutes}m',
                               style: const TextStyle(
-                                  color: TiideColors.silver, fontSize: 10));
+                                  color: TiideColors.ink3, fontSize: 10));
                         },
                       ),
                     ),
@@ -457,13 +457,13 @@ class _InsightCard extends StatelessWidget {
                 children: [
                   Text(insight.title,
                       style: const TextStyle(
-                          color: TiideColors.white,
+                          color: TiideColors.ink,
                           fontWeight: FontWeight.w700,
                           fontSize: 14)),
                   const SizedBox(height: 2),
                   Text(insight.body,
                       style: const TextStyle(
-                          color: TiideColors.silver, fontSize: 13)),
+                          color: TiideColors.ink3, fontSize: 13)),
                 ],
               ),
             ),

@@ -171,7 +171,7 @@ class _ResumeButton extends StatelessWidget {
     return Column(
       children: [
         const Text('session in progress',
-            style: TextStyle(color: TiideColors.silver)),
+            style: TextStyle(color: TiideColors.ink3)),
         const SizedBox(height: TiideSpacing.m),
         FilledButton(onPressed: onPressed, child: const Text('RESUME')),
       ],

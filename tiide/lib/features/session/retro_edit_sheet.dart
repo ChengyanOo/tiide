@@ -62,12 +62,12 @@ class _RetroEditSheetState extends ConsumerState<RetroEditSheet> {
                       _isCustom = false;
                       _selectedMinutes = m;
                     }),
-                    backgroundColor: TiideColors.midDark,
+                    backgroundColor: TiideColors.surfaceElev,
                     selectedColor: TiideColors.accent,
                     labelStyle: TextStyle(
                       color: !_isCustom && _selectedMinutes == m
                           ? Colors.black
-                          : TiideColors.white,
+                          : TiideColors.ink,
                     ),
                     shape: const StadiumBorder(),
                     side: BorderSide.none,
@@ -77,10 +77,10 @@ class _RetroEditSheetState extends ConsumerState<RetroEditSheet> {
                   label: const Text('custom'),
                   selected: _isCustom,
                   onSelected: (_) => setState(() => _isCustom = true),
-                  backgroundColor: TiideColors.midDark,
+                  backgroundColor: TiideColors.surfaceElev,
                   selectedColor: TiideColors.accent,
                   labelStyle: TextStyle(
-                    color: _isCustom ? Colors.black : TiideColors.white,
+                    color: _isCustom ? Colors.black : TiideColors.ink,
                   ),
                   shape: const StadiumBorder(),
                   side: BorderSide.none,
@@ -101,7 +101,7 @@ class _RetroEditSheetState extends ConsumerState<RetroEditSheet> {
                     .clamp(1, widget.session.plannedDurationMin)
                     .toDouble(),
                 activeColor: TiideColors.accent,
-                inactiveColor: TiideColors.midDark,
+                inactiveColor: TiideColors.surfaceElev,
                 onChanged: (v) =>
                     setState(() => _selectedMinutes = v.round()),
               ),

@@ -27,7 +27,7 @@ class ClusterScreen extends ConsumerWidget {
                 child: Text(
                   'no clusters yet.\nclusters form after enough sessions with location data.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: TiideColors.silver, height: 1.5),
+                  style: TextStyle(color: TiideColors.ink3, height: 1.5),
                 ),
               ),
             );
@@ -56,13 +56,13 @@ class _ClusterTile extends ConsumerWidget {
       child: ListTile(
         leading: const Icon(Icons.location_on, color: TiideColors.accent),
         title: Text(label,
-            style: const TextStyle(color: TiideColors.white)),
+            style: const TextStyle(color: TiideColors.ink)),
         subtitle: Text(
           '${cluster.centroidLat.toStringAsFixed(4)}, ${cluster.centroidLng.toStringAsFixed(4)}  •  ${cluster.radiusM.round()}m',
-          style: const TextStyle(color: TiideColors.silver, fontSize: 12),
+          style: const TextStyle(color: TiideColors.ink3, fontSize: 12),
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.edit_outlined, color: TiideColors.silver, size: 20),
+          icon: const Icon(Icons.edit_outlined, color: TiideColors.ink3, size: 20),
           onPressed: () => _showRename(context, ref),
         ),
       ),
@@ -87,19 +87,19 @@ class _ClusterTile extends ConsumerWidget {
           children: [
             const Text('rename cluster',
                 style: TextStyle(
-                    color: TiideColors.white,
+                    color: TiideColors.ink,
                     fontSize: 18,
                     fontWeight: FontWeight.w700)),
             const SizedBox(height: TiideSpacing.m),
             TextField(
               controller: controller,
               autofocus: true,
-              style: const TextStyle(color: TiideColors.white),
+              style: const TextStyle(color: TiideColors.ink),
               decoration: InputDecoration(
                 hintText: 'e.g. home, office',
-                hintStyle: const TextStyle(color: TiideColors.borderGray),
+                hintStyle: const TextStyle(color: TiideColors.hair),
                 filled: true,
-                fillColor: TiideColors.midDark,
+                fillColor: TiideColors.surfaceElev,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(TiideRadius.card),
                   borderSide: BorderSide.none,

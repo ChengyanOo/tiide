@@ -29,7 +29,7 @@ class SessionDetailScreen extends ConsumerWidget {
           if (row == null) {
             return const Center(
                 child: Text('session not found',
-                    style: TextStyle(color: TiideColors.silver)));
+                    style: TextStyle(color: TiideColors.ink3)));
           }
           return ListView(
             padding: const EdgeInsets.all(TiideSpacing.m),
@@ -94,7 +94,7 @@ class _SessionHeader extends StatelessWidget {
               children: [
                 Text(dateStr,
                     style: const TextStyle(
-                        color: TiideColors.white,
+                        color: TiideColors.ink,
                         fontWeight: FontWeight.w700,
                         fontSize: 16)),
                 Text('${mins}m',
@@ -113,13 +113,13 @@ class _SessionHeader extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: TiideColors.midDark,
+                        color: TiideColors.surfaceElev,
                         borderRadius:
                             BorderRadius.circular(TiideRadius.pill),
                       ),
                       child: Text(t.label,
                           style: const TextStyle(
-                              fontSize: 12, color: TiideColors.silver)),
+                              fontSize: 12, color: TiideColors.ink3)),
                     ),
                 ],
               ),
@@ -172,15 +172,15 @@ class _EmptyBiometric extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TiideSpacing.l),
       decoration: BoxDecoration(
-        color: TiideColors.darkSurface,
+        color: TiideColors.surface,
         borderRadius: BorderRadius.circular(TiideRadius.card),
       ),
       child: const Column(
         children: [
-          Icon(Icons.favorite_outline, color: TiideColors.borderGray, size: 32),
+          Icon(Icons.favorite_outline, color: TiideColors.hair, size: 32),
           SizedBox(height: TiideSpacing.s),
           Text('no biometric data for this session',
-              style: TextStyle(color: TiideColors.silver, fontSize: 13)),
+              style: TextStyle(color: TiideColors.ink3, fontSize: 13)),
         ],
       ),
     );
@@ -208,7 +208,7 @@ class _HrComparisonCard extends StatelessWidget {
                     : '—',
               ),
             ),
-            Container(width: 1, height: 40, color: TiideColors.borderGray),
+            Container(width: 1, height: 40, color: TiideColors.hair),
             Expanded(
               child: _MetricCol(
                 label: 'HR during',
@@ -217,7 +217,7 @@ class _HrComparisonCard extends StatelessWidget {
                     : '—',
               ),
             ),
-            Container(width: 1, height: 40, color: TiideColors.borderGray),
+            Container(width: 1, height: 40, color: TiideColors.hair),
             Expanded(
               child: _MetricCol(
                 label: 'HRV before',
@@ -226,7 +226,7 @@ class _HrComparisonCard extends StatelessWidget {
                     : '—',
               ),
             ),
-            Container(width: 1, height: 40, color: TiideColors.borderGray),
+            Container(width: 1, height: 40, color: TiideColors.hair),
             Expanded(
               child: _MetricCol(
                 label: 'HRV during',
@@ -253,12 +253,12 @@ class _MetricCol extends StatelessWidget {
       children: [
         Text(value,
             style: const TextStyle(
-                color: TiideColors.white,
+                color: TiideColors.ink,
                 fontWeight: FontWeight.w700,
                 fontSize: 16)),
         const SizedBox(height: 4),
         Text(label,
-            style: const TextStyle(color: TiideColors.silver, fontSize: 11)),
+            style: const TextStyle(color: TiideColors.ink3, fontSize: 11)),
       ],
     );
   }
@@ -280,7 +280,7 @@ class _HrvSparkline extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TiideSpacing.m),
       decoration: BoxDecoration(
-        color: TiideColors.darkSurface,
+        color: TiideColors.surface,
         borderRadius: BorderRadius.circular(TiideRadius.card),
       ),
       child: Column(
@@ -288,7 +288,7 @@ class _HrvSparkline extends StatelessWidget {
         children: [
           const Text('HRV trend',
               style: TextStyle(
-                  color: TiideColors.silver,
+                  color: TiideColors.ink3,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: TiideSpacing.s),
@@ -342,24 +342,24 @@ class _GeoSection extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(TiideSpacing.m),
               decoration: BoxDecoration(
-                color: TiideColors.darkSurface,
+                color: TiideColors.surface,
                 borderRadius: BorderRadius.circular(TiideRadius.card),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.location_on_outlined,
-                      color: TiideColors.silver, size: 18),
+                      color: TiideColors.ink3, size: 18),
                   const SizedBox(width: TiideSpacing.s),
                   Text(
                     '${p.kind}: ${p.lat.toStringAsFixed(4)}, ${p.lng.toStringAsFixed(4)}',
                     style: const TextStyle(
-                        color: TiideColors.silver, fontSize: 13),
+                        color: TiideColors.ink3, fontSize: 13),
                   ),
                   const Spacer(),
                   if (p.accuracyM != null)
                     Text('±${p.accuracyM!.round()}m',
                         style: const TextStyle(
-                            color: TiideColors.borderGray, fontSize: 11)),
+                            color: TiideColors.hair, fontSize: 11)),
                 ],
               ),
             ),
@@ -383,12 +383,12 @@ class _NoteCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.notes, color: TiideColors.silver, size: 18),
+            const Icon(Icons.notes, color: TiideColors.ink3, size: 18),
             const SizedBox(width: TiideSpacing.s),
             Expanded(
               child: Text(note,
                   style: const TextStyle(
-                      color: TiideColors.silver, fontSize: 14, height: 1.4)),
+                      color: TiideColors.ink3, fontSize: 14, height: 1.4)),
             ),
           ],
         ),

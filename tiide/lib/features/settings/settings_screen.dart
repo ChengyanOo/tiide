@@ -5,39 +5,162 @@ import 'package:go_router/go_router.dart';
 import '../../core/permissions.dart';
 import '../../core/theme.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _cloudSync = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final prefs = ref.watch(permissionPrefsProvider);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('settings')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 20),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text('settings'),
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(TiideSpacing.m),
+        padding: const EdgeInsets.only(bottom: 40),
         children: [
-          _SettingsTile(
-            icon: Icons.play_circle_outline,
-            label: 'Replay Onboarding',
-            subtitle: 'walk through the intro again',
-            onTap: () async {
-              final prefs = ref.read(permissionPrefsProvider);
-              await prefs.resetOnboarding();
-              if (context.mounted) context.go('/onboarding');
-            },
-          ),
-          const SizedBox(height: TiideSpacing.s),
-          _SettingsTile(
-            icon: Icons.shield_outlined,
-            label: 'Permissions',
-            subtitle: 'health & location opt-in',
-            onTap: () => context.push('/permissions'),
-          ),
-          const SizedBox(height: TiideSpacing.s),
-          _SettingsTile(
-            icon: Icons.lock_outline,
-            label: 'Privacy Center',
-            subtitle: 'export, delete, encryption status',
-            onTap: () => context.push('/privacy'),
+          const _SectionLabel('SESSION'),
+          _Card(children: [
+            _Row(
+              icon: Icons.water_drop_outlined,
+              label: 'default duration',
+              trailing: const _RowTrail(value: '15 min'),
+              onTap: () {},
+            ),
+            _Row(
+              icon: Icons.spa_outlined,
+              label: 'calming visual',
+              trailing: const _RowTrail(value: 'tide'),
+              onTap: () {},
+            ),
+            _Row(
+              icon: Icons.menu_book_outlined,
+              label: 'verse library',
+              trailing: const _RowTrail(),
+              onTap: () => context.push('/verses'),
+              last: true,
+            ),
+          ]),
+          const _SectionLabel('DATA & PRIVACY'),
+          _Card(children: [
+            _Row(
+              icon: Icons.favorite_outline,
+              label: 'biometrics',
+              trailing: _ToggleTrail(
+                text: prefs.healthOptIn ? 'on' : 'off',
+                value: prefs.healthOptIn,
+                onChanged: (v) async {
+                  await ref.read(permissionPrefsProvider).setHealthOptIn(v);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ),
+            _Row(
+              icon: Icons.place_outlined,
+              label: 'location',
+              trailing: _ToggleTrail(
+                text: prefs.geoOptIn ? 'on' : 'off',
+                value: prefs.geoOptIn,
+                onChanged: (v) async {
+                  await ref.read(permissionPrefsProvider).setGeoOptIn(v);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ),
+            _Row(
+              icon: Icons.cloud_outlined,
+              label: 'cloud sync',
+              sub: 'opt-in, off by default',
+              trailing: _ToggleTrail(
+                text: _cloudSync ? 'on' : 'off',
+                value: _cloudSync,
+                onChanged: (v) => setState(() => _cloudSync = v),
+              ),
+            ),
+            _Row(
+              icon: Icons.tune,
+              label: 'permissions',
+              trailing: const _RowTrail(),
+              onTap: () => context.push('/permissions'),
+              last: true,
+            ),
+          ]),
+          const _SectionLabel('APPEARANCE'),
+          _Card(children: [
+            _Row(
+              icon: Icons.nightlight_outlined,
+              label: 'theme',
+              trailing: const _RowTrail(value: 'dusk · auto'),
+              onTap: () {},
+            ),
+            _Row(
+              icon: Icons.water_drop_outlined,
+              label: 'accent',
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  _Swatch(color: TiideColors.accent),
+                  SizedBox(width: 6),
+                  Text('Warm clay',
+                      style: TextStyle(color: TiideColors.ink3, fontSize: 14)),
+                  SizedBox(width: 6),
+                  Icon(Icons.chevron_right,
+                      size: 16, color: TiideColors.ink4),
+                ],
+              ),
+              onTap: () {},
+              last: true,
+            ),
+          ]),
+          const _SectionLabel('YOUR DATA'),
+          _Card(children: [
+            _Row(
+              icon: Icons.file_download_outlined,
+              label: 'export as JSON',
+              trailing: const _RowTrail(),
+              onTap: () => context.push('/privacy'),
+            ),
+            _Row(
+              icon: Icons.close,
+              label: 'delete all data',
+              trailing: const _RowTrail(),
+              onTap: () => context.push('/privacy'),
+              last: true,
+            ),
+            _Row(
+              icon: Icons.refresh,
+              label: 'replay onboarding',
+              trailing: const _RowTrail(),
+              onTap: () async {
+                await ref.read(permissionPrefsProvider).resetOnboarding();
+                if (context.mounted) context.go('/onboarding');
+              },
+              last: true,
+            ),
+          ]),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(24, 28, 24, 0),
+            child: Text(
+              'tiide is offline by default. every session stays\non this device until you say otherwise.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: TiideColors.ink4,
+                fontStyle: FontStyle.italic,
+                fontSize: 12,
+                height: 1.6,
+              ),
+            ),
           ),
         ],
       ),
@@ -45,52 +168,164 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 22, 24, 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: TiideColors.ink4,
+          fontSize: 11,
+          letterSpacing: 1.4,
+        ),
+      ),
+    );
+  }
+}
+
+class _Card extends StatelessWidget {
+  const _Card({required this.children});
+  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: TiideColors.surface,
+        borderRadius: BorderRadius.circular(TiideRadius.card),
+        border: Border.all(color: TiideColors.hair2),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
+    );
+  }
+}
+
+class _Row extends StatelessWidget {
+  const _Row({
     required this.icon,
     required this.label,
-    required this.subtitle,
-    required this.onTap,
+    required this.trailing,
+    this.sub,
+    this.onTap,
+    this.last = false,
   });
   final IconData icon;
   final String label;
-  final String subtitle;
-  final VoidCallback onTap;
+  final String? sub;
+  final Widget trailing;
+  final VoidCallback? onTap;
+  final bool last;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: TiideColors.darkSurface,
-      borderRadius: BorderRadius.circular(TiideRadius.card),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(TiideSpacing.m),
-          child: Row(
-            children: [
-              Icon(icon, color: TiideColors.accent, size: 24),
-              const SizedBox(width: TiideSpacing.m),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label,
-                        style: const TextStyle(
-                            color: TiideColors.white,
-                            fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: const TextStyle(
-                            fontSize: 12, color: TiideColors.silver)),
-                  ],
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: last
+              ? null
+              : const Border(
+                  bottom: BorderSide(color: TiideColors.hair2),
                 ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: TiideColors.ink3),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: const TextStyle(
+                        color: TiideColors.ink,
+                        fontSize: 15,
+                      )),
+                  if (sub != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(sub!,
+                          style: const TextStyle(
+                            color: TiideColors.ink4,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          )),
+                    ),
+                ],
               ),
-              const Icon(Icons.chevron_right, color: TiideColors.borderGray),
-            ],
-          ),
+            ),
+            trailing,
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _RowTrail extends StatelessWidget {
+  const _RowTrail({this.value});
+  final String? value;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (value != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: Text(value!,
+                style: const TextStyle(
+                    color: TiideColors.ink3, fontSize: 14)),
+          ),
+        const Icon(Icons.chevron_right, size: 16, color: TiideColors.ink4),
+      ],
+    );
+  }
+}
+
+class _ToggleTrail extends StatelessWidget {
+  const _ToggleTrail({
+    required this.text,
+    required this.value,
+    required this.onChanged,
+  });
+  final String text;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(text,
+            style:
+                const TextStyle(color: TiideColors.ink3, fontSize: 14)),
+        const SizedBox(width: 6),
+        Transform.scale(
+          scale: 0.85,
+          child: Switch(value: value, onChanged: onChanged),
+        ),
+      ],
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  const _Swatch({required this.color});
+  final Color color;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

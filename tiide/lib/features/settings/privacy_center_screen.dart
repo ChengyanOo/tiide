@@ -65,7 +65,7 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
             icon: Icons.cloud_off,
             label: 'Cloud Sync',
             status: 'coming soon — all data stays local',
-            statusColor: TiideColors.silver,
+            statusColor: TiideColors.ink3,
           ),
         ],
       ),
@@ -87,7 +87,7 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('exported to ${file.path}'),
-            backgroundColor: TiideColors.darkSurface,
+            backgroundColor: TiideColors.surface,
           ),
         );
       }
@@ -181,19 +181,19 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: TiideColors.darkSurface,
+        backgroundColor: TiideColors.surface,
         title: const Text('delete all data?',
-            style: TextStyle(color: TiideColors.white)),
+            style: TextStyle(color: TiideColors.ink)),
         content: const Text(
           'this will permanently remove all sessions, biometric data, '
           'and location data. this cannot be undone.',
-          style: TextStyle(color: TiideColors.silver),
+          style: TextStyle(color: TiideColors.ink3),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('cancel',
-                style: TextStyle(color: TiideColors.silver)),
+                style: TextStyle(color: TiideColors.ink3)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -219,7 +219,7 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
       messenger.showSnackBar(
         const SnackBar(
           content: Text('all data deleted'),
-          backgroundColor: TiideColors.darkSurface,
+          backgroundColor: TiideColors.surface,
         ),
       );
     } catch (e) {
@@ -252,7 +252,7 @@ class _StatusCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TiideSpacing.m),
       decoration: BoxDecoration(
-        color: TiideColors.darkSurface,
+        color: TiideColors.surface,
         borderRadius: BorderRadius.circular(TiideRadius.card),
       ),
       child: Row(
@@ -265,7 +265,7 @@ class _StatusCard extends StatelessWidget {
               children: [
                 Text(label,
                     style: const TextStyle(
-                        color: TiideColors.white,
+                        color: TiideColors.ink,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
                 Text(status,
@@ -299,7 +299,7 @@ class _ActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = destructive ? TiideColors.negative : TiideColors.accent;
     return Material(
-      color: TiideColors.darkSurface,
+      color: TiideColors.surface,
       borderRadius: BorderRadius.circular(TiideRadius.card),
       child: InkWell(
         borderRadius: BorderRadius.circular(TiideRadius.card),
@@ -322,12 +322,12 @@ class _ActionCard extends StatelessWidget {
                   children: [
                     Text(label,
                         style: TextStyle(
-                            color: TiideColors.white,
+                            color: TiideColors.ink,
                             fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
                     Text(subtitle,
                         style: const TextStyle(
-                            fontSize: 12, color: TiideColors.silver)),
+                            fontSize: 12, color: TiideColors.ink3)),
                   ],
                 ),
               ),

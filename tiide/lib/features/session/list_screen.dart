@@ -72,7 +72,7 @@ class _SessionTile extends StatelessWidget {
               children: [
                 Text(dateStr,
                     style: const TextStyle(
-                        color: TiideColors.white, fontWeight: FontWeight.w700)),
+                        color: TiideColors.ink, fontWeight: FontWeight.w700)),
                 Text('${mins}m',
                     style: const TextStyle(color: TiideColors.accent)),
               ],
@@ -88,13 +88,13 @@ class _SessionTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: TiideColors.midDark,
+                        color: TiideColors.surfaceElev,
                         borderRadius:
                             BorderRadius.circular(TiideRadius.pill),
                       ),
                       child: Text(t.label,
                           style: const TextStyle(
-                              fontSize: 12, color: TiideColors.silver)),
+                              fontSize: 12, color: TiideColors.ink3)),
                     ),
                 ],
               ),
