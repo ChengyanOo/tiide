@@ -18,13 +18,14 @@ User hit by a craving → taps widget → app starts session in background → s
 See [BDD acceptance criteria](acceptance.md).
 
 ## Docs Index
+- [Progress log](progress.md)
 - [System architecture](diagrams/architecture.md)
 - [Session flow](diagrams/session-flow.md)
 - [Data model (ERD)](diagrams/data-model.md)
 - [Tech stack](stack.md)
 - [Privacy](privacy.md)
 - [Acceptance criteria](acceptance.md)
-- Sprints: [S1](sprints/s1-core-mvp.md) · [S2](sprints/s2-zero-friction.md) · [S3](sprints/s3-calming-ux.md) · [S4](sprints/s4-biometric-geo.md) · [S5](sprints/s5-dashboard.md) · [S6](sprints/s6-polish-release.md)
+- [UI design notes](ui-design.md) · [Redesign mocks (HTML)](redesign/Tiide.html)
 
 ## Open Questions
 - Cloud provider: Supabase vs Firebase?
