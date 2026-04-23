@@ -99,3 +99,13 @@ final insightsProvider = FutureProvider<List<Insight>>((ref) {
 final geoClustersProvider = StreamProvider<List<GeoCluster>>((ref) {
   return ref.watch(dashboardRepoProvider).watchClusters();
 });
+
+/// Map of sessionId → place label across all sessions. Recomputed when the
+/// session list changes. Stable identity avoids refetch churn that would
+/// happen if callers passed a fresh `List<String>` family key each rebuild.
+final sessionPlacesProvider =
+    FutureProvider<Map<String, String>>((ref) async {
+  final rows = await ref.watch(sessionListProvider.future);
+  final ids = [for (final r in rows) r.session.id];
+  return ref.watch(enrichmentRepoProvider).placesForSessions(ids);
+});

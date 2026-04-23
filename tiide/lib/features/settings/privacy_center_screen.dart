@@ -1,10 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 import '../../app/providers.dart';
 import '../../core/theme.dart';
@@ -25,47 +25,63 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('privacy center')),
+      appBar: AppBar(title: const Text('privacy')),
       body: ListView(
-        padding: const EdgeInsets.all(TiideSpacing.m),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
-          // Encryption status
-          _StatusCard(
-            icon: Icons.enhanced_encryption,
-            label: 'Database Encryption',
-            // Drift with SQLCipher — always encrypted when using sqlite3_flutter_libs with sqlcipher variant.
-            status: 'SQLCipher — encrypted at rest',
-            statusColor: TiideColors.accent,
+          const _SectionLabel('storage'),
+          _InkCard(
+            children: [
+              _StatusRow(
+                icon: Icons.shield_outlined,
+                label: 'database encryption',
+                detail: 'sqlcipher · encrypted at rest',
+                accent: TiideColors.accent,
+              ),
+              const _Divider(),
+              _StatusRow(
+                icon: Icons.cloud_outlined,
+                label: 'cloud sync',
+                detail: 'coming soon — all data stays local',
+                accent: TiideColors.ink3,
+              ),
+            ],
           ),
-          const SizedBox(height: TiideSpacing.m),
-
-          // Export JSON
-          _ActionCard(
-            icon: Icons.download,
-            label: 'Export All Data',
-            subtitle: 'sessions, biometrics, location as JSON',
-            loading: _exporting,
-            onTap: _export,
+          const SizedBox(height: 22),
+          const _SectionLabel('your data'),
+          _InkCard(
+            children: [
+              _ActionRow(
+                icon: Icons.download_outlined,
+                label: 'export all data',
+                detail: 'sessions, biometrics, location as json',
+                loading: _exporting,
+                onTap: _export,
+              ),
+              const _Divider(),
+              _ActionRow(
+                icon: Icons.delete_outline,
+                label: 'delete all data',
+                detail: 'permanently remove everything',
+                destructive: true,
+                loading: _deleting,
+                onTap: () => _confirmDelete(context),
+              ),
+            ],
           ),
-          const SizedBox(height: TiideSpacing.m),
-
-          // Delete all
-          _ActionCard(
-            icon: Icons.delete_forever,
-            label: 'Delete All Data',
-            subtitle: 'permanently remove everything',
-            destructive: true,
-            loading: _deleting,
-            onTap: () => _confirmDelete(context),
-          ),
-          const SizedBox(height: TiideSpacing.m),
-
-          // Cloud sync stub
-          _StatusCard(
-            icon: Icons.cloud_off,
-            label: 'Cloud Sync',
-            status: 'coming soon — all data stays local',
-            statusColor: TiideColors.ink3,
+          const SizedBox(height: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'nothing leaves this device unless you choose. exports save to the app documents folder.',
+              style: TextStyle(
+                fontFamily: tiideSerif,
+                fontStyle: FontStyle.italic,
+                fontSize: 12,
+                color: TiideColors.ink4,
+                height: 1.55,
+              ),
+            ),
           ),
         ],
       ),
@@ -182,23 +198,40 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: TiideColors.surface,
-        title: const Text('delete all data?',
-            style: TextStyle(color: TiideColors.ink)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TiideRadius.card),
+        ),
+        title: const Text(
+          'delete all data?',
+          style: TextStyle(
+            fontFamily: tiideSerif,
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+            color: TiideColors.ink,
+          ),
+        ),
         content: const Text(
-          'this will permanently remove all sessions, biometric data, '
-          'and location data. this cannot be undone.',
-          style: TextStyle(color: TiideColors.ink3),
+          'this will permanently remove all sessions, biometric data, and location data. this cannot be undone.',
+          style: TextStyle(
+              fontFamily: tiideSerif,
+              fontSize: 14,
+              color: TiideColors.ink3,
+              height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('cancel',
-                style: TextStyle(color: TiideColors.ink3)),
+                style: TextStyle(
+                    fontFamily: tiideSerif, color: TiideColors.ink3)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('DELETE EVERYTHING',
-                style: TextStyle(color: TiideColors.negative)),
+            child: const Text('delete everything',
+                style: TextStyle(
+                    fontFamily: tiideSerif,
+                    fontWeight: FontWeight.w500,
+                    color: TiideColors.negative)),
           ),
         ],
       ),
@@ -235,41 +268,88 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
   }
 }
 
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({
-    required this.icon,
-    required this.label,
-    required this.status,
-    required this.statusColor,
-  });
-  final IconData icon;
-  final String label;
-  final String status;
-  final Color statusColor;
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 0, 10),
+      child: Text(
+        text.toUpperCase(),
+        style: const TextStyle(
+          fontFamily: tiideSerif,
+          fontSize: 10,
+          letterSpacing: 2.2,
+          color: TiideColors.ink4,
+        ),
+      ),
+    );
+  }
+}
 
+class _InkCard extends StatelessWidget {
+  const _InkCard({required this.children});
+  final List<Widget> children;
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(TiideSpacing.m),
       decoration: BoxDecoration(
         color: TiideColors.surface,
         borderRadius: BorderRadius.circular(TiideRadius.card),
+        border: Border.all(color: TiideColors.hair2, width: 1),
       ),
+      child: Column(children: children),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  const _Divider();
+  @override
+  Widget build(BuildContext context) =>
+      const Divider(height: 1, thickness: 1, color: TiideColors.hair2);
+}
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({
+    required this.icon,
+    required this.label,
+    required this.detail,
+    required this.accent,
+  });
+  final IconData icon;
+  final String label;
+  final String detail;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Icon(icon, color: statusColor, size: 24),
-          const SizedBox(width: TiideSpacing.m),
+          Icon(icon, color: accent, size: 20),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
                     style: const TextStyle(
-                        color: TiideColors.ink,
-                        fontWeight: FontWeight.w700)),
-                const SizedBox(height: 2),
-                Text(status,
-                    style: TextStyle(fontSize: 12, color: statusColor)),
+                      fontFamily: tiideSerif,
+                      fontSize: 15,
+                      color: TiideColors.ink,
+                      fontWeight: FontWeight.w500,
+                    )),
+                const SizedBox(height: 3),
+                Text(detail,
+                    style: TextStyle(
+                      fontFamily: tiideSerif,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: accent,
+                    )),
               ],
             ),
           ),
@@ -279,60 +359,67 @@ class _StatusCard extends StatelessWidget {
   }
 }
 
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
     required this.icon,
     required this.label,
-    required this.subtitle,
+    required this.detail,
     required this.onTap,
     this.destructive = false,
     this.loading = false,
   });
   final IconData icon;
   final String label;
-  final String subtitle;
+  final String detail;
   final VoidCallback onTap;
   final bool destructive;
   final bool loading;
 
   @override
   Widget build(BuildContext context) {
-    final color = destructive ? TiideColors.negative : TiideColors.accent;
-    return Material(
-      color: TiideColors.surface,
+    final color = destructive ? TiideColors.negative : TiideColors.ink2;
+    return InkWell(
       borderRadius: BorderRadius.circular(TiideRadius.card),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-        onTap: loading ? null : onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(TiideSpacing.m),
-          child: Row(
-            children: [
-              loading
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: color))
-                  : Icon(icon, color: color, size: 24),
-              const SizedBox(width: TiideSpacing.m),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label,
-                        style: TextStyle(
-                            color: TiideColors.ink,
-                            fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: const TextStyle(
-                            fontSize: 12, color: TiideColors.ink3)),
-                  ],
-                ),
+      onTap: loading ? null : onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: loading
+                  ? CircularProgressIndicator(strokeWidth: 1.5, color: color)
+                  : Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                        fontFamily: tiideSerif,
+                        fontSize: 15,
+                        color: destructive
+                            ? TiideColors.negative
+                            : TiideColors.ink,
+                        fontWeight: FontWeight.w500,
+                      )),
+                  const SizedBox(height: 3),
+                  Text(detail,
+                      style: const TextStyle(
+                        fontFamily: tiideSerif,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: TiideColors.ink3,
+                      )),
+                ],
               ),
-            ],
-          ),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 18, color: TiideColors.ink4),
+          ],
         ),
       ),
     );

@@ -1,14 +1,16 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
+import '../../core/format.dart';
+import '../../core/tag_colors.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
 import '../../data/repo/session_repo.dart';
 import 'breathing_circle.dart';
+import 'retro_edit_sheet.dart';
 
-/// Detail screen for a completed session, showing tags + biometric data.
 class SessionDetailScreen extends ConsumerWidget {
   const SessionDetailScreen({super.key, required this.sessionId});
   final String sessionId;
@@ -18,9 +20,46 @@ class SessionDetailScreen extends ConsumerWidget {
     final sessionAsync = ref.watch(sessionDetailProvider(sessionId));
     final snapshotAsync = ref.watch(biometricSnapshotProvider(sessionId));
     final geoAsync = ref.watch(geoPointsProvider(sessionId));
+    final place =
+        ref.watch(sessionPlacesProvider).valueOrNull?[sessionId];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('session detail')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 22),
+          onPressed: () => context.pop(),
+        ),
+        title: sessionAsync.when(
+          loading: () => const Text(''),
+          error: (_, _) => const Text(''),
+          data: (row) => Text(row == null
+              ? ''
+              : formatSessionDateBucket(
+                  row.session.startedAt, DateTime.now())),
+        ),
+        actions: [
+          sessionAsync.maybeWhen(
+            data: (row) => row == null
+                ? const SizedBox.shrink()
+                : TextButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) =>
+                            RetroEditSheet(session: row.session),
+                      );
+                    },
+                    child: const Text('edit',
+                        style: TextStyle(
+                            color: TiideColors.ink3,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 14)),
+                  ),
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
+      ),
       body: sessionAsync.when(
         loading: () => const Center(
             child: CircularProgressIndicator(color: TiideColors.accent)),
@@ -28,37 +67,37 @@ class SessionDetailScreen extends ConsumerWidget {
         data: (row) {
           if (row == null) {
             return const Center(
-                child: Text('session not found',
-                    style: TextStyle(color: TiideColors.ink3)));
+              child: Text('session not found',
+                  style: TextStyle(color: TiideColors.ink3)),
+            );
           }
           return ListView(
-            padding: const EdgeInsets.all(TiideSpacing.m),
+            padding: const EdgeInsets.fromLTRB(
+                TiideSpacing.l, TiideSpacing.s, TiideSpacing.l, TiideSpacing.xl),
             children: [
-              _SessionHeader(row: row),
-              if (row.session.note != null &&
-                  row.session.note!.isNotEmpty) ...[
-                const SizedBox(height: TiideSpacing.m),
-                _NoteCard(note: row.session.note!),
-              ],
+              _Hero(row: row),
+              const SizedBox(height: TiideSpacing.s),
+              _ReplayCard(session: row.session),
               const SizedBox(height: TiideSpacing.m),
-              _BreathingReplay(session: row.session),
-              const SizedBox(height: TiideSpacing.l),
               snapshotAsync.when(
-                data: (snap) => snap != null
-                    ? _BiometricSection(
-                        snapshot: snap,
-                        sessionId: sessionId,
-                      )
-                    : const _EmptyBiometric(),
                 loading: () => const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
+                data: (snap) => snap == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: TiideSpacing.m),
+                        child: _BiometricCard(snapshot: snap),
+                      ),
               ),
+              _TagsAndNoteCard(row: row),
               const SizedBox(height: TiideSpacing.m),
               geoAsync.when(
-                data: (points) =>
-                    points.isNotEmpty ? _GeoSection(points: points) : const SizedBox.shrink(),
                 loading: () => const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
+                data: (points) => points.isEmpty
+                    ? const SizedBox.shrink()
+                    : _PlaceCard(place: place, points: points),
               ),
             ],
           );
@@ -68,346 +107,119 @@ class SessionDetailScreen extends ConsumerWidget {
   }
 }
 
-// ----- Session header -----
+// ─── Shared shell ───────────────────────────────────────────
 
-class _SessionHeader extends StatelessWidget {
-  const _SessionHeader({required this.row});
+class _Card extends StatelessWidget {
+  const _Card({required this.child, this.padding});
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding ??
+          const EdgeInsets.symmetric(
+              horizontal: TiideSpacing.m + 2, vertical: TiideSpacing.m),
+      decoration: BoxDecoration(
+        color: TiideColors.surface,
+        borderRadius: BorderRadius.circular(TiideRadius.card),
+        border: Border.all(color: TiideColors.hair2),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _Eyebrow extends StatelessWidget {
+  const _Eyebrow(this.text, {this.trailing});
+  final String text;
+  final Widget? trailing;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(text.toUpperCase(),
+            style: const TextStyle(
+                color: TiideColors.ink4,
+                fontSize: 11,
+                letterSpacing: 1.6,
+                fontWeight: FontWeight.w500)),
+        ?trailing,
+      ],
+    );
+  }
+}
+
+// ─── Hero ───────────────────────────────────────────────────
+
+class _Hero extends StatelessWidget {
+  const _Hero({required this.row});
   final SessionWithTags row;
 
   @override
   Widget build(BuildContext context) {
     final s = row.session;
-    final d = s.startedAt;
-    final dateStr =
-        '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')} '
-        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     final mins = s.actualDurationMin ?? s.plannedDurationMin;
+    final trailing = s.endedAt == null
+        ? (s.outcome == 'orphaned' ? 'retroactively saved' : '')
+        : 'ended at ${formatTimeOfDay(s.endedAt!)}';
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(TiideSpacing.m),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: TiideSpacing.m),
+      child: Column(
+        children: [
+          Text(formatTimeOfDay(s.startedAt).toUpperCase(),
+              style: const TextStyle(
+                  color: TiideColors.ink4,
+                  fontSize: 11,
+                  letterSpacing: 2.2)),
+          const SizedBox(height: 6),
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: const TextStyle(
+                fontFamily: tiideSerif,
+                fontSize: 48,
+                fontWeight: FontWeight.w300,
+                color: TiideColors.ink,
+                height: 1.1,
+              ),
               children: [
-                Text(dateStr,
-                    style: const TextStyle(
-                        color: TiideColors.ink,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16)),
-                Text('${mins}m',
-                    style:
-                        const TextStyle(color: TiideColors.accent, fontSize: 18)),
+                TextSpan(text: '$mins'),
+                const TextSpan(
+                  text: ' min',
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: TiideColors.ink3,
+                      fontWeight: FontWeight.w400),
+                ),
               ],
             ),
-            if (row.tags.isNotEmpty) ...[
-              const SizedBox(height: TiideSpacing.s),
-              Wrap(
-                spacing: TiideSpacing.xs,
-                runSpacing: TiideSpacing.xs,
-                children: [
-                  for (final t in row.tags)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: TiideColors.surfaceElev,
-                        borderRadius:
-                            BorderRadius.circular(TiideRadius.pill),
-                      ),
-                      child: Text(t.label,
-                          style: const TextStyle(
-                              fontSize: 12, color: TiideColors.ink3)),
-                    ),
-                ],
-              ),
-            ],
+          ),
+          if (trailing.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(trailing,
+                style: const TextStyle(
+                    color: TiideColors.ink3,
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic)),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ----- Biometric section -----
-
-class _BiometricSection extends ConsumerWidget {
-  const _BiometricSection({required this.snapshot, required this.sessionId});
-  final BiometricSnapshot snapshot;
-  final String sessionId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final samplesAsync = ref.watch(biometricSamplesProvider(snapshot.id));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('biometrics',
-            style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: TiideSpacing.m),
-        _HrComparisonCard(snapshot: snapshot),
-        const SizedBox(height: TiideSpacing.m),
-        samplesAsync.when(
-          data: (samples) {
-            final hrvSamples =
-                samples.where((s) => s.metric == 'hrv').toList();
-            if (hrvSamples.isEmpty) return const SizedBox.shrink();
-            return _HrvSparkline(samples: hrvSamples);
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
-        ),
-      ],
-    );
-  }
-}
-
-class _EmptyBiometric extends StatelessWidget {
-  const _EmptyBiometric();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(TiideSpacing.l),
-      decoration: BoxDecoration(
-        color: TiideColors.surface,
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-      ),
-      child: const Column(
-        children: [
-          Icon(Icons.favorite_outline, color: TiideColors.hair, size: 32),
-          SizedBox(height: TiideSpacing.s),
-          Text('no biometric data for this session',
-              style: TextStyle(color: TiideColors.ink3, fontSize: 13)),
         ],
       ),
     );
   }
 }
 
-// ----- HR comparison card -----
+// ─── Replay (breathing circle animation) ───────────────────
 
-class _HrComparisonCard extends StatelessWidget {
-  const _HrComparisonCard({required this.snapshot});
-  final BiometricSnapshot snapshot;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(TiideSpacing.m),
-        child: Row(
-          children: [
-            Expanded(
-              child: _MetricCol(
-                label: 'HR before',
-                value: snapshot.hrAvgPre != null
-                    ? '${snapshot.hrAvgPre!.round()} bpm'
-                    : '—',
-              ),
-            ),
-            Container(width: 1, height: 40, color: TiideColors.hair),
-            Expanded(
-              child: _MetricCol(
-                label: 'HR during',
-                value: snapshot.hrAvgDuring != null
-                    ? '${snapshot.hrAvgDuring!.round()} bpm'
-                    : '—',
-              ),
-            ),
-            Container(width: 1, height: 40, color: TiideColors.hair),
-            Expanded(
-              child: _MetricCol(
-                label: 'HRV before',
-                value: snapshot.hrvAvgPre != null
-                    ? '${snapshot.hrvAvgPre!.round()} ms'
-                    : '—',
-              ),
-            ),
-            Container(width: 1, height: 40, color: TiideColors.hair),
-            Expanded(
-              child: _MetricCol(
-                label: 'HRV during',
-                value: snapshot.hrvAvgDuring != null
-                    ? '${snapshot.hrvAvgDuring!.round()} ms'
-                    : '—',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MetricCol extends StatelessWidget {
-  const _MetricCol({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value,
-            style: const TextStyle(
-                color: TiideColors.ink,
-                fontWeight: FontWeight.w700,
-                fontSize: 16)),
-        const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(color: TiideColors.ink3, fontSize: 11)),
-      ],
-    );
-  }
-}
-
-// ----- HRV sparkline -----
-
-class _HrvSparkline extends StatelessWidget {
-  const _HrvSparkline({required this.samples});
-  final List<BiometricSample> samples;
-
-  @override
-  Widget build(BuildContext context) {
-    final spots = <FlSpot>[];
-    for (var i = 0; i < samples.length; i++) {
-      spots.add(FlSpot(i.toDouble(), samples[i].value));
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(TiideSpacing.m),
-      decoration: BoxDecoration(
-        color: TiideColors.surface,
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('HRV trend',
-              style: TextStyle(
-                  color: TiideColors.ink3,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700)),
-          const SizedBox(height: TiideSpacing.s),
-          SizedBox(
-            height: 120,
-            child: LineChart(
-              LineChartData(
-                gridData: const FlGridData(show: false),
-                titlesData: const FlTitlesData(show: false),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: spots,
-                    isCurved: true,
-                    color: TiideColors.accent,
-                    barWidth: 2,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: TiideColors.accent.withAlpha(30),
-                    ),
-                  ),
-                ],
-                lineTouchData: const LineTouchData(enabled: false),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ----- Geo section -----
-
-class _GeoSection extends StatelessWidget {
-  const _GeoSection({required this.points});
-  final List<GeoPoint> points;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('location', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: TiideSpacing.s),
-        for (final p in points)
-          Padding(
-            padding: const EdgeInsets.only(bottom: TiideSpacing.xs),
-            child: Container(
-              padding: const EdgeInsets.all(TiideSpacing.m),
-              decoration: BoxDecoration(
-                color: TiideColors.surface,
-                borderRadius: BorderRadius.circular(TiideRadius.card),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.location_on_outlined,
-                      color: TiideColors.ink3, size: 18),
-                  const SizedBox(width: TiideSpacing.s),
-                  Text(
-                    '${p.kind}: ${p.lat.toStringAsFixed(4)}, ${p.lng.toStringAsFixed(4)}',
-                    style: const TextStyle(
-                        color: TiideColors.ink3, fontSize: 13),
-                  ),
-                  const Spacer(),
-                  if (p.accuracyM != null)
-                    Text('±${p.accuracyM!.round()}m',
-                        style: const TextStyle(
-                            color: TiideColors.hair, fontSize: 11)),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// ----- Note card (S5.5) -----
-
-class _NoteCard extends StatelessWidget {
-  const _NoteCard({required this.note});
-  final String note;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(TiideSpacing.m),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.notes, color: TiideColors.ink3, size: 18),
-            const SizedBox(width: TiideSpacing.s),
-            Expanded(
-              child: Text(note,
-                  style: const TextStyle(
-                      color: TiideColors.ink3, fontSize: 14, height: 1.4)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ----- Breathing circle replay (S5.5) -----
-
-class _BreathingReplay extends StatefulWidget {
-  const _BreathingReplay({required this.session});
+class _ReplayCard extends StatefulWidget {
+  const _ReplayCard({required this.session});
   final Session session;
-
   @override
-  State<_BreathingReplay> createState() => _BreathingReplayState();
+  State<_ReplayCard> createState() => _ReplayCardState();
 }
 
-class _BreathingReplayState extends State<_BreathingReplay>
+class _ReplayCardState extends State<_ReplayCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   bool _playing = false;
@@ -418,7 +230,6 @@ class _BreathingReplayState extends State<_BreathingReplay>
   @override
   void initState() {
     super.initState();
-    // Replay compressed: 1 min per 5 min of actual, min 10s.
     final replaySeconds = (_durationMin / 5 * 60).clamp(10, 360).round();
     _controller = AnimationController(
       vsync: this,
@@ -450,27 +261,409 @@ class _BreathingReplayState extends State<_BreathingReplay>
     });
   }
 
+  String _fmtSecs(double seconds) {
+    final s = seconds.round();
+    final m = s ~/ 60;
+    final r = s % 60;
+    return '$m:${r.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggle,
+      child: _Card(
+        padding: EdgeInsets.zero,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(TiideRadius.card),
+          child: Container(
+            height: 160,
+            color: const Color(0xFFE9E2D2),
+            child: Stack(
+              children: [
+                Center(
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (_, _) => Transform.scale(
+                      scale: 0.55,
+                      child: BreathingCircle(
+                        progress: _controller.value,
+                        elapsedMinutes: _controller.value * _durationMin,
+                        plannedMinutes: _durationMin,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 14,
+                  right: 14,
+                  bottom: 10,
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (_, _) {
+                      final frac = _controller.value;
+                      return Row(
+                        children: [
+                          const Text('0:00',
+                              style: TextStyle(
+                                  color: TiideColors.ink2, fontSize: 11)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [
+                                Container(
+                                  height: 2,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(
+                                        alpha: 0.15),
+                                    borderRadius:
+                                        BorderRadius.circular(99),
+                                  ),
+                                ),
+                                FractionallySizedBox(
+                                  widthFactor: frac.clamp(0.0, 1.0),
+                                  child: Container(
+                                    height: 2,
+                                    decoration: BoxDecoration(
+                                      color: TiideColors.accent,
+                                      borderRadius:
+                                          BorderRadius.circular(99),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(_fmtSecs(_durationMin * 60.0),
+                              style: const TextStyle(
+                                  color: TiideColors.ink2, fontSize: 11)),
+                          const SizedBox(width: 6),
+                          Icon(_playing ? Icons.pause : Icons.play_arrow,
+                              size: 14, color: TiideColors.ink2),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Biometrics ────────────────────────────────────────────
+
+class _BiometricCard extends ConsumerWidget {
+  const _BiometricCard({required this.snapshot});
+  final BiometricSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final samplesAsync =
+        ref.watch(biometricSamplesProvider(snapshot.id));
+    final pre = snapshot.hrAvgPre;
+    final dur = snapshot.hrAvgDuring;
+    final hrvGain = (snapshot.hrvAvgDuring != null &&
+            snapshot.hrvAvgPre != null)
+        ? (snapshot.hrvAvgDuring! - snapshot.hrvAvgPre!)
+        : null;
+
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Eyebrow('heart · hrv',
+              trailing: const Text('10 min pre · during',
+                  style: TextStyle(
+                      color: TiideColors.ink3,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic))),
+          const SizedBox(height: 10),
+          samplesAsync.when(
+            loading: () => const SizedBox(height: 80),
+            error: (_, _) => const SizedBox(height: 80),
+            data: (samples) {
+              final hr = samples.where((s) => s.metric == 'hr').toList();
+              if (hr.isEmpty) return const SizedBox(height: 80);
+              final startedAt = samples
+                  .map((s) => s.ts)
+                  .reduce((a, b) => a.isBefore(b) ? a : b);
+              return SizedBox(
+                height: 90,
+                child: CustomPaint(
+                  painter: _HrChartPainter(
+                    samples: hr,
+                    sessionStart: startedAt,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                  child: _Stat(
+                      label: 'HR pre',
+                      value: pre?.round().toString() ?? '—',
+                      unit: 'bpm')),
+              Expanded(
+                  child: _Stat(
+                      label: 'HR during',
+                      value: dur?.round().toString() ?? '—',
+                      unit: 'bpm')),
+              Expanded(
+                  child: _Stat(
+                      label: 'HRV gain',
+                      value: hrvGain == null
+                          ? '—'
+                          : '${hrvGain > 0 ? '+' : ''}${hrvGain.round()}',
+                      unit: 'ms',
+                      good: hrvGain != null && hrvGain > 0)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({
+    required this.label,
+    required this.value,
+    required this.unit,
+    this.good = false,
+  });
+  final String label;
+  final String value;
+  final String unit;
+  final bool good;
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (_, _) {
-            return BreathingCircle(
-              progress: _controller.value,
-              elapsedMinutes: _controller.value * _durationMin,
-              plannedMinutes: _durationMin,
-            );
-          },
-        ),
-        const SizedBox(height: TiideSpacing.s),
-        FilledButton.icon(
-          onPressed: _toggle,
-          icon: Icon(_playing ? Icons.pause : Icons.play_arrow, size: 18),
-          label: Text(_playing ? 'PAUSE' : 'REPLAY'),
+        Text(label,
+            style: const TextStyle(
+                color: TiideColors.ink4, fontSize: 11)),
+        const SizedBox(height: 2),
+        RichText(
+          text: TextSpan(
+            style: TextStyle(
+                color: good ? TiideColors.accent : TiideColors.ink,
+                fontFamily: tiideSerif,
+                fontSize: 18,
+                fontWeight: FontWeight.w400),
+            children: [
+              TextSpan(text: value),
+              TextSpan(
+                text: ' $unit',
+                style: const TextStyle(
+                    color: TiideColors.ink4,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400),
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _HrChartPainter extends CustomPainter {
+  _HrChartPainter({required this.samples, required this.sessionStart});
+  final List<BiometricSample> samples;
+  final DateTime sessionStart;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (samples.length < 2) return;
+    final pre = <BiometricSample>[];
+    final during = <BiometricSample>[];
+    for (final s in samples) {
+      if (s.ts.isBefore(sessionStart)) {
+        pre.add(s);
+      } else {
+        during.add(s);
+      }
+    }
+    final values = samples.map((s) => s.value).toList();
+    final minV = values.reduce((a, b) => a < b ? a : b) - 2;
+    final maxV = values.reduce((a, b) => a > b ? a : b) + 2;
+    final range = (maxV - minV).clamp(1.0, 1000.0);
+    final h = size.height - 12;
+    // Split width — 40% pre, 60% during (or proportional to counts).
+    final total = pre.length + during.length;
+    final splitX = total == 0
+        ? size.width * 0.4
+        : size.width * (pre.length / total).clamp(0.2, 0.8);
+
+    Path pathFor(List<BiometricSample> list, double x0, double x1) {
+      final p = Path();
+      if (list.isEmpty) return p;
+      for (int i = 0; i < list.length; i++) {
+        final frac =
+            list.length == 1 ? 0.5 : i / (list.length - 1);
+        final x = x0 + (x1 - x0) * frac;
+        final y = h - ((list[i].value - minV) / range) * h;
+        if (i == 0) {
+          p.moveTo(x, y);
+        } else {
+          p.lineTo(x, y);
+        }
+      }
+      return p;
+    }
+
+    final prePaint = Paint()
+      ..color = TiideColors.ink4.withValues(alpha: 0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    final durPaint = Paint()
+      ..color = TiideColors.accent
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    final divider = Paint()
+      ..color = TiideColors.hair
+      ..strokeWidth = 1;
+
+    canvas.drawPath(pathFor(pre, 0, splitX), prePaint);
+    canvas.drawPath(pathFor(during, splitX, size.width), durPaint);
+
+    // Dashed divider.
+    double y = 0;
+    while (y < h) {
+      canvas.drawLine(Offset(splitX, y), Offset(splitX, y + 2), divider);
+      y += 5;
+    }
+
+    void tp(String s, double x) {
+      final painter = TextPainter(
+        text: TextSpan(
+            text: s,
+            style: const TextStyle(
+                color: TiideColors.ink4, fontSize: 9)),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      painter.paint(canvas,
+          Offset(x - painter.width / 2, size.height - painter.height));
+    }
+    tp('pre', splitX / 2);
+    tp('during', splitX + (size.width - splitX) / 2);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HrChartPainter old) =>
+      old.samples != samples;
+}
+
+// ─── Tags + note ───────────────────────────────────────────
+
+class _TagsAndNoteCard extends StatelessWidget {
+  const _TagsAndNoteCard({required this.row});
+  final SessionWithTags row;
+  @override
+  Widget build(BuildContext context) {
+    final note = row.session.note;
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _Eyebrow('tags'),
+          const SizedBox(height: 10),
+          if (row.tags.isEmpty)
+            const Text('—',
+                style: TextStyle(color: TiideColors.ink4))
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final t in row.tags) _FilledTag(label: t.label),
+              ],
+            ),
+          if (note != null && note.isNotEmpty) ...[
+            const SizedBox(height: TiideSpacing.m),
+            const _Eyebrow('note'),
+            const SizedBox(height: 8),
+            Text(note,
+                style: const TextStyle(
+                    color: TiideColors.ink,
+                    fontSize: 15,
+                    height: 1.55,
+                    fontStyle: FontStyle.italic)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _FilledTag extends StatelessWidget {
+  const _FilledTag({required this.label});
+  final String label;
+  @override
+  Widget build(BuildContext context) {
+    final c = colorForTag(label) ?? TiideColors.accent;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Text(label,
+          style: const TextStyle(color: Colors.white, fontSize: 12)),
+    );
+  }
+}
+
+// ─── Place ─────────────────────────────────────────────────
+
+class _PlaceCard extends StatelessWidget {
+  const _PlaceCard({required this.place, required this.points});
+  final String? place;
+  final List<GeoPoint> points;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Eyebrow('place',
+              trailing: Text(place ?? 'unnamed',
+                  style: const TextStyle(
+                      color: TiideColors.ink3,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic))),
+          const SizedBox(height: 10),
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE9E2D2),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: TiideColors.hair2),
+            ),
+            child: Center(
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: TiideColors.accent,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -147,4 +147,24 @@ class EnrichmentRepo {
           ..where((g) => g.sessionId.equals(sessionId)))
         .get();
   }
+
+  /// Resolve a human place label (cluster.userLabel) for each session id
+  /// via its `start` geo point. Returns a map of sessionId → label.
+  Future<Map<String, String>> placesForSessions(List<String> sessionIds) async {
+    if (sessionIds.isEmpty) return const {};
+    final rows = await (db.select(db.geoPoints).join([
+      innerJoin(db.geoClusters,
+          db.geoClusters.id.equalsExp(db.geoPoints.clusterId)),
+    ])
+          ..where(db.geoPoints.sessionId.isIn(sessionIds))
+          ..where(db.geoPoints.kind.equals('start')))
+        .get();
+    final out = <String, String>{};
+    for (final r in rows) {
+      final sid = r.readTable(db.geoPoints).sessionId;
+      final label = r.readTable(db.geoClusters).userLabel;
+      if (label != null && label.isNotEmpty) out[sid] = label;
+    }
+    return out;
+  }
 }

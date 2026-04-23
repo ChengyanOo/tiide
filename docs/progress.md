@@ -14,8 +14,9 @@ Running state of the app. Update as redesign rolls out.
 ## Redesign (in progress)
 
 Mockups live in [redesign/Tiide.html](redesign/Tiide.html). Source JSX in
-[redesign/src](redesign/src). Palette: warm cream bg, clay accent, serif
-italic wordmark, lowercase.
+[redesign/src](redesign/src). Palette: warm cream bg, **ink** accent
+(`#1C2936` — deep sumi blue-black), serif italic wordmark, lowercase.
+All screens now migrated; the clay accent is gone.
 
 ### Done
 - **Theme** — [lib/core/theme.dart](../tiide/lib/core/theme.dart). New cream/clay palette,
@@ -31,16 +32,48 @@ italic wordmark, lowercase.
 - **Verse library** — new screen at `/verses`. Tabs (browse/saved/custom), preview
   card, category toggles, cadence picker (off/slow/default), browse list.
 
-### Not yet redesigned (still use new palette but old layouts)
-- Home screen — mockup has big circular "sit" button + bottom stats strip (streak /
-  today / avg) + nav row (dashboard / list / settings icons). See
-  [redesign/src/screens/home.jsx](redesign/src/screens/home.jsx).
-- Active session screen — mockup in [redesign/src/screens/active.jsx](redesign/src/screens/active.jsx).
-- Dashboard / cluster — [redesign/src/screens/dashboard.jsx](redesign/src/screens/dashboard.jsx).
-- Session list + detail — [redesign/src/screens/sessions.jsx](redesign/src/screens/sessions.jsx).
-- Retro-edit sheet — currently uses old layout; redesign has `DurationSnap` 5/10/15.
-- Privacy center screen — still functional but not restyled beyond palette.
-- Tag picker sheet — palette only.
+### Done (redesign pass 2 — "ink")
+- **Palette shift** — accent flipped from warm clay to ink `#1C2936`. Whole app
+  reads as black ink on warm parchment now. `TiideColors.accent` /
+  `accentSoft` are the only touch points.
+- **Home** — [lib/features/home/home_screen.dart](../tiide/lib/features/home/home_screen.dart).
+  `TiideLogo` + nav icons row, big 240px "sit" circle with nested hairlines +
+  soft accent radial gradient, bottom strip pulls streak / today / avg from
+  session list. Resume state shows "session in progress" + elapsed +
+  resume pill.
+- **Active session** — [lib/features/session/active_screen.dart](../tiide/lib/features/session/active_screen.dart).
+  Full-bleed dark `#0E1217` bg, breathing ambient glow with faint progress
+  ring, verse + attribution at bottom, glass close button top-left, "tiide"
+  wordmark centered, wave icon right. Long-press anywhere reveals remaining
+  time. `+5 min` ghost button + `end now` filled pill.
+- **Retro-edit sheet** — [lib/features/session/retro_edit_sheet.dart](../tiide/lib/features/session/retro_edit_sheet.dart).
+  `DurationSnap` 5/10/15 rail with big serif value on top, discard / save row.
+- **Tag picker sheet** — [lib/features/tag/tag_picker_sheet.dart](../tiide/lib/features/tag/tag_picker_sheet.dart).
+  Categorised sections (uppercase label), pill chips with colored dot +
+  selected-state tint from `tag_colors.dart`.
+- **Privacy center** — [lib/features/settings/privacy_center_screen.dart](../tiide/lib/features/settings/privacy_center_screen.dart).
+  Sectioned ink cards (storage · your data), status rows with italic detail,
+  action rows with chevrons, italic footer.
+- **Cluster screen** — [lib/features/dashboard/cluster_screen.dart](../tiide/lib/features/dashboard/cluster_screen.dart).
+  Now "places" — intro line, ink cards with circle place icon, rename sheet
+  restyled to match.
+
+### Looking-back surfaces (dashboard · sessions · detail)
+- **Dashboard** — [lib/features/dashboard/dashboard_screen.dart](../tiide/lib/features/dashboard/dashboard_screen.dart).
+  KPI row (sessions · sit-time · day streak), 28-day "days sat with it" grid, 7×24
+  time-of-day heatmap, insight cards (clay left rule), tag bar with dots, duration
+  histogram highlighting the mode, places card with mini map + cluster list.
+  Most-saved verses strip deferred until verses are persisted.
+- **Sessions list** — [lib/features/session/list_screen.dart](../tiide/lib/features/session/list_screen.dart).
+  Grouped by today/yesterday/weekday bucket, accent/muted time ring, tag pills with
+  colored dots, italic place label from geo cluster, orphaned inline tag.
+- **Session detail** — [lib/features/session/session_detail_screen.dart](../tiide/lib/features/session/session_detail_screen.dart).
+  Hero summary (time caps, big serif duration, ended-at line), tappable breathing
+  replay card with progress scrubber, HR·HRV chart (pre vs during) + HR pre/during
+  + HRV gain stats, filled tag chips with note, place card with cluster label. Edit
+  opens the retro-edit sheet.
+- Shared helpers — `lib/core/tag_colors.dart` and `lib/core/format.dart`
+  (lowercase date buckets, 12h time, short duration).
 
 ### External surfaces (separate from Flutter)
 - iOS lockscreen widget, notification, Control Center tile — see
@@ -56,8 +89,13 @@ italic wordmark, lowercase.
 - Cloud sync toggle in settings is UI-only.
 
 ## Known TODOs after redesign
-- Wire home screen nav icons → dashboard / list / settings (mockup shows them
-  inline, not in AppBar).
-- Home "bottom strip" stats need real data from session repo.
 - Replace `TiideColors.accentSoft` hardcoded alpha with proper swatch system if
   more accent choices added.
+- Dashboard "most saved verses" + session detail "verses that accompanied" strip:
+  skipped until per-session verse persistence lands.
+- Session detail place card shows a stub map dot — swap for a real cluster plot
+  once clustering geometry is available client-side.
+- Active-screen verse list is hard-coded in the file — swap for per-session verse
+  from verse library once persisted.
+- `BreathingCircle` widget now only used by session detail replay; if replay ever
+  matures to full ink aesthetic, consider folding it into the ambient painter.

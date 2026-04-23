@@ -13,8 +13,9 @@ class TiideColors {
   static const ink3 = Color(0xFF7A6F5F);
   static const ink4 = Color(0xFFA89B84);
 
-  static const accent = Color(0xFFB07050); // warm clay
-  static const accentSoft = Color(0x22B07050);
+  // Ink accent — monochrome, sumi-like deep blue-black.
+  static const accent = Color(0xFF1C2936);
+  static const accentSoft = Color(0x221C2936);
 
   static const negative = Color(0xFFC5534B);
   static const warning = Color(0xFFC8892A);
