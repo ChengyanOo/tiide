@@ -30,3 +30,13 @@ String formatDurationShort(int minutes) {
   if (m == 0) return '${h}h';
   return '${h}h ${m}m';
 }
+
+/// `M:SS` for short replays, `MM:SS` for session countdowns. Negative → "done".
+String formatMMSS(Duration d, {bool padMinutes = false}) {
+  if (d.isNegative) return 'done';
+  final totalSec = d.inSeconds;
+  final m = totalSec ~/ 60;
+  final s = totalSec % 60;
+  final mm = padMinutes ? m.toString().padLeft(2, '0') : m.toString();
+  return '$mm:${s.toString().padLeft(2, '0')}';
+}

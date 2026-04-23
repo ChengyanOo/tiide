@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/permissions.dart';
 import '../../core/theme.dart';
+import '../../shared/ink_card.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -31,7 +32,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         padding: const EdgeInsets.only(bottom: 40),
         children: [
           const _SectionLabel('SESSION'),
-          _Card(children: [
+          InkCard(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.zero,
+            clip: Clip.antiAlias,
+            child: Column(children: [
             _Row(
               icon: Icons.water_drop_outlined,
               label: 'default duration',
@@ -52,8 +57,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               last: true,
             ),
           ]),
+          ),
           const _SectionLabel('DATA & PRIVACY'),
-          _Card(children: [
+          InkCard(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.zero,
+            clip: Clip.antiAlias,
+            child: Column(children: [
             _Row(
               icon: Icons.favorite_outline,
               label: 'biometrics',
@@ -96,8 +106,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               last: true,
             ),
           ]),
+          ),
           const _SectionLabel('APPEARANCE'),
-          _Card(children: [
+          InkCard(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.zero,
+            clip: Clip.antiAlias,
+            child: Column(children: [
             _Row(
               icon: Icons.nightlight_outlined,
               label: 'theme',
@@ -112,7 +127,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: const [
                   _Swatch(color: TiideColors.accent),
                   SizedBox(width: 6),
-                  Text('Warm clay',
+                  Text('sumi ink',
                       style: TextStyle(color: TiideColors.ink3, fontSize: 14)),
                   SizedBox(width: 6),
                   Icon(Icons.chevron_right,
@@ -123,8 +138,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               last: true,
             ),
           ]),
+          ),
           const _SectionLabel('YOUR DATA'),
-          _Card(children: [
+          InkCard(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.zero,
+            clip: Clip.antiAlias,
+            child: Column(children: [
             _Row(
               icon: Icons.file_download_outlined,
               label: 'export as JSON',
@@ -149,6 +169,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               last: true,
             ),
           ]),
+          ),
           const Padding(
             padding: EdgeInsets.fromLTRB(24, 28, 24, 0),
             child: Text(
@@ -183,24 +204,6 @@ class _SectionLabel extends StatelessWidget {
           letterSpacing: 1.4,
         ),
       ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.children});
-  final List<Widget> children;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: TiideColors.surface,
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-        border: Border.all(color: TiideColors.hair2),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(children: children),
     );
   }
 }

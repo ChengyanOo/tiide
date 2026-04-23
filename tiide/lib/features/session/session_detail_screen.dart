@@ -8,6 +8,8 @@ import '../../core/tag_colors.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
 import '../../data/repo/session_repo.dart';
+import '../../shared/eyebrow.dart';
+import '../../shared/ink_card.dart';
 import 'breathing_circle.dart';
 import 'retro_edit_sheet.dart';
 
@@ -61,8 +63,7 @@ class SessionDetailScreen extends ConsumerWidget {
         ],
       ),
       body: sessionAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: TiideColors.accent)),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (row) {
           if (row == null) {
@@ -103,49 +104,6 @@ class SessionDetailScreen extends ConsumerWidget {
           );
         },
       ),
-    );
-  }
-}
-
-// ─── Shared shell ───────────────────────────────────────────
-
-class _Card extends StatelessWidget {
-  const _Card({required this.child, this.padding});
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding ??
-          const EdgeInsets.symmetric(
-              horizontal: TiideSpacing.m + 2, vertical: TiideSpacing.m),
-      decoration: BoxDecoration(
-        color: TiideColors.surface,
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-        border: Border.all(color: TiideColors.hair2),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _Eyebrow extends StatelessWidget {
-  const _Eyebrow(this.text, {this.trailing});
-  final String text;
-  final Widget? trailing;
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(text.toUpperCase(),
-            style: const TextStyle(
-                color: TiideColors.ink4,
-                fontSize: 11,
-                letterSpacing: 1.6,
-                fontWeight: FontWeight.w500)),
-        ?trailing,
-      ],
     );
   }
 }
@@ -261,24 +219,17 @@ class _ReplayCardState extends State<_ReplayCard>
     });
   }
 
-  String _fmtSecs(double seconds) {
-    final s = seconds.round();
-    final m = s ~/ 60;
-    final r = s % 60;
-    return '$m:${r.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _toggle,
-      child: _Card(
+      child: InkCard(
         padding: EdgeInsets.zero,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(TiideRadius.card),
           child: Container(
             height: 160,
-            color: const Color(0xFFE9E2D2),
+            color: TiideColors.mapCanvas,
             child: Stack(
               children: [
                 Center(
@@ -336,7 +287,8 @@ class _ReplayCardState extends State<_ReplayCard>
                             ),
                           ),
                           const SizedBox(width: 10),
-                          Text(_fmtSecs(_durationMin * 60.0),
+                          Text(
+                              formatMMSS(Duration(seconds: _durationMin * 60)),
                               style: const TextStyle(
                                   color: TiideColors.ink2, fontSize: 11)),
                           const SizedBox(width: 6),
@@ -373,11 +325,11 @@ class _BiometricCard extends ConsumerWidget {
         ? (snapshot.hrvAvgDuring! - snapshot.hrvAvgPre!)
         : null;
 
-    return _Card(
+    return InkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Eyebrow('heart · hrv',
+          Eyebrow('heart · hrv',
               trailing: const Text('10 min pre · during',
                   style: TextStyle(
                       color: TiideColors.ink3,
@@ -572,11 +524,11 @@ class _TagsAndNoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final note = row.session.note;
-    return _Card(
+    return InkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _Eyebrow('tags'),
+          const Eyebrow('tags'),
           const SizedBox(height: 10),
           if (row.tags.isEmpty)
             const Text('—',
@@ -591,7 +543,7 @@ class _TagsAndNoteCard extends StatelessWidget {
             ),
           if (note != null && note.isNotEmpty) ...[
             const SizedBox(height: TiideSpacing.m),
-            const _Eyebrow('note'),
+            const Eyebrow('note'),
             const SizedBox(height: 8),
             Text(note,
                 style: const TextStyle(
@@ -633,11 +585,11 @@ class _PlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Card(
+    return InkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Eyebrow('place',
+          Eyebrow('place',
               trailing: Text(place ?? 'unnamed',
                   style: const TextStyle(
                       color: TiideColors.ink3,
@@ -647,7 +599,7 @@ class _PlaceCard extends StatelessWidget {
           Container(
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFFE9E2D2),
+              color: TiideColors.mapCanvas,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: TiideColors.hair2),
             ),

@@ -73,7 +73,20 @@ All screens now migrated; the clay accent is gone.
   + HRV gain stats, filled tag chips with note, place card with cluster label. Edit
   opens the retro-edit sheet.
 - Shared helpers — `lib/core/tag_colors.dart` and `lib/core/format.dart`
-  (lowercase date buckets, 12h time, short duration).
+  (lowercase date buckets, 12h time, short duration, MM:SS countdown).
+
+### Refactor pass (clarity)
+- Pulled the repeated "ink-card-with-hair2-border" container into
+  [lib/shared/ink_card.dart](../tiide/lib/shared/ink_card.dart); same for the
+  uppercase section label ([eyebrow.dart](../tiide/lib/shared/eyebrow.dart))
+  and the bottom-sheet drag handle ([sheet_drag_handle.dart](../tiide/lib/shared/sheet_drag_handle.dart)).
+  Dashboard, session detail, privacy center, settings, retro-edit, tag picker,
+  and cluster rename all consume the shared widgets now.
+- `TiideColors.mapCanvas` token replaces the scattered `0xFFE9E2D2` literal.
+- `ProgressIndicatorTheme` defaults the spinner to the accent, so loading
+  states no longer pass `color:` per call.
+- `formatMMSS` lives in `core/format.dart` and is reused by the active-screen
+  remaining-time overlay and the session-detail replay scrubber.
 
 ### External surfaces (separate from Flutter)
 - iOS lockscreen widget, notification, Control Center tile — see

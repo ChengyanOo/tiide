@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
+import '../../shared/sheet_drag_handle.dart';
 
 class ClusterScreen extends ConsumerWidget {
   const ClusterScreen({super.key});
@@ -15,8 +16,7 @@ class ClusterScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('places')),
       body: data.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: TiideColors.accent)),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (clusters) {
           if (clusters.isEmpty) {
@@ -186,15 +186,7 @@ class _ClusterTile extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: TiideColors.hair,
-                borderRadius: BorderRadius.circular(9999),
-              ),
-            ),
+            const SheetDragHandle(bottomGap: 16),
             const Text(
               'name this place',
               style: TextStyle(

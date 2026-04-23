@@ -25,8 +25,7 @@ class SessionListScreen extends ConsumerWidget {
         title: const Text('sessions'),
       ),
       body: async.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: TiideColors.accent)),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (rows) {
           if (rows.isEmpty) {

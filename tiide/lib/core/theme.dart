@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TiideColors {
-  // Redesign palette — warm cream / clay
+  // Warm parchment surfaces, sumi-ink accent.
   static const bg = Color(0xFFF5EFE3);
   static const surface = Color(0xFFFBF6EC);
   static const surfaceElev = Color(0xFFEFE7D6);
@@ -13,9 +13,11 @@ class TiideColors {
   static const ink3 = Color(0xFF7A6F5F);
   static const ink4 = Color(0xFFA89B84);
 
-  // Ink accent — monochrome, sumi-like deep blue-black.
   static const accent = Color(0xFF1C2936);
   static const accentSoft = Color(0x221C2936);
+
+  /// Flat canvas used behind mini-maps and the replay tile.
+  static const mapCanvas = Color(0xFFE9E2D2);
 
   static const negative = Color(0xFFC5534B);
   static const warning = Color(0xFFC8892A);
@@ -165,6 +167,9 @@ ThemeData buildTiideTheme() {
       trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
     ),
     dividerColor: TiideColors.hair2,
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: TiideColors.accent,
+    ),
   );
 }
 

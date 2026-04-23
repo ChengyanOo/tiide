@@ -5,6 +5,7 @@ import '../../app/providers.dart';
 import '../../core/tag_colors.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
+import '../../shared/sheet_drag_handle.dart';
 
 class TagPickerSheet extends ConsumerStatefulWidget {
   const TagPickerSheet({super.key});
@@ -31,8 +32,7 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
         child: tags.when(
           loading: () => const Padding(
             padding: EdgeInsets.all(TiideSpacing.l),
-            child: Center(
-                child: CircularProgressIndicator(color: TiideColors.accent)),
+            child: Center(child: CircularProgressIndicator()),
           ),
           error: (e, _) => Text('$e'),
           data: (list) {
@@ -44,15 +44,7 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 14),
-                  decoration: BoxDecoration(
-                    color: TiideColors.hair,
-                    borderRadius: BorderRadius.circular(9999),
-                  ),
-                ),
+                const SheetDragHandle(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

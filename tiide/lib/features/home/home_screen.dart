@@ -49,8 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: active.when(
-          loading: () => const Center(
-              child: CircularProgressIndicator(color: TiideColors.accent)),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('$e')),
           data: (s) {
             final resumable = s != null && !_isOrphaned(s);

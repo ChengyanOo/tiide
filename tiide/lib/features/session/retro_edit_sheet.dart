@@ -5,6 +5,7 @@ import '../../core/format.dart';
 import '../../core/session_controller.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
+import '../../shared/sheet_drag_handle.dart';
 import '../tag/tag_picker_sheet.dart';
 
 /// Orphaned-session retro-edit sheet.
@@ -43,15 +44,7 @@ class _RetroEditSheetState extends ConsumerState<RetroEditSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 18),
-              decoration: BoxDecoration(
-                color: TiideColors.hair,
-                borderRadius: BorderRadius.circular(9999),
-              ),
-            ),
+            const SheetDragHandle(bottomGap: 18),
             const Text(
               'a session was running',
               style: TextStyle(

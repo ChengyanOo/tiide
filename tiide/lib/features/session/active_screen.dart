@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
+import '../../core/format.dart';
 import '../../core/session_controller.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
@@ -188,7 +189,7 @@ class _ActiveBodyState extends ConsumerState<_ActiveBody>
                   if (_showTime)
                     Center(
                       child: Text(
-                        _formatRemaining(planned - elapsed),
+                        formatMMSS(planned - elapsed, padMinutes: true),
                         style: const TextStyle(
                           fontFamily: tiideSerif,
                           fontStyle: FontStyle.italic,
@@ -282,13 +283,6 @@ class _ActiveBodyState extends ConsumerState<_ActiveBody>
         ],
       ),
     );
-  }
-
-  String _formatRemaining(Duration r) {
-    if (r.isNegative) return 'done';
-    final m = r.inMinutes;
-    final sec = r.inSeconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
 
   Future<void> _extend(Session s) async {

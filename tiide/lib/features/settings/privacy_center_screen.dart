@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../app/providers.dart';
 import '../../core/theme.dart';
 import '../../data/db/database.dart';
+import '../../shared/ink_card.dart';
 
 class PrivacyCenterScreen extends ConsumerStatefulWidget {
   const PrivacyCenterScreen({super.key});
@@ -30,8 +31,9 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
           const _SectionLabel('storage'),
-          _InkCard(
-            children: [
+          InkCard(
+            padding: EdgeInsets.zero,
+            child: Column(children: [
               _StatusRow(
                 icon: Icons.shield_outlined,
                 label: 'database encryption',
@@ -45,12 +47,13 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
                 detail: 'coming soon — all data stays local',
                 accent: TiideColors.ink3,
               ),
-            ],
+            ]),
           ),
           const SizedBox(height: 22),
           const _SectionLabel('your data'),
-          _InkCard(
-            children: [
+          InkCard(
+            padding: EdgeInsets.zero,
+            child: Column(children: [
               _ActionRow(
                 icon: Icons.download_outlined,
                 label: 'export all data',
@@ -67,7 +70,7 @@ class _PrivacyCenterScreenState extends ConsumerState<PrivacyCenterScreen> {
                 loading: _deleting,
                 onTap: () => _confirmDelete(context),
               ),
-            ],
+            ]),
           ),
           const SizedBox(height: 24),
           const Padding(
@@ -284,22 +287,6 @@ class _SectionLabel extends StatelessWidget {
           color: TiideColors.ink4,
         ),
       ),
-    );
-  }
-}
-
-class _InkCard extends StatelessWidget {
-  const _InkCard({required this.children});
-  final List<Widget> children;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TiideColors.surface,
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-        border: Border.all(color: TiideColors.hair2, width: 1),
-      ),
-      child: Column(children: children),
     );
   }
 }

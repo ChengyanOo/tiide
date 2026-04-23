@@ -9,6 +9,8 @@ import '../../core/theme.dart';
 import '../../data/repo/dashboard_repo.dart';
 import '../../data/repo/session_repo.dart';
 import '../../shared/empty_state.dart';
+import '../../shared/eyebrow.dart';
+import '../../shared/ink_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -38,8 +40,7 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
       body: sessions.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: TiideColors.accent)),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (rows) {
           final saved =
@@ -75,52 +76,6 @@ class DashboardScreen extends ConsumerWidget {
         },
       ),
     );
-  }
-}
-
-// ─── Shared card shell ──────────────────────────────────────
-
-class _Card extends StatelessWidget {
-  const _Card({required this.child, this.padding});
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding ??
-          const EdgeInsets.symmetric(
-              horizontal: TiideSpacing.m + 2, vertical: TiideSpacing.m),
-      decoration: BoxDecoration(
-        color: TiideColors.surface,
-        borderRadius: BorderRadius.circular(TiideRadius.card),
-        border: Border.all(color: TiideColors.hair2),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _Eyebrow extends StatelessWidget {
-  const _Eyebrow(this.text, {this.trailing});
-  final String text;
-  final Widget? trailing;
-  @override
-  Widget build(BuildContext context) {
-    final row = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Text(text.toUpperCase(),
-            style: const TextStyle(
-                color: TiideColors.ink4,
-                fontSize: 11,
-                letterSpacing: 1.6,
-                fontWeight: FontWeight.w500)),
-        ?trailing,
-      ],
-    );
-    return row;
   }
 }
 
@@ -161,7 +116,7 @@ class _KpiTile extends StatelessWidget {
   final String label;
   @override
   Widget build(BuildContext context) {
-    return _Card(
+    return InkCard(
       padding:
           const EdgeInsets.symmetric(horizontal: 8, vertical: TiideSpacing.m),
       child: Column(
@@ -232,13 +187,13 @@ class _StreakGrid extends StatelessWidget {
       }
     }
 
-    return _Card(
+    return InkCard(
       padding: const EdgeInsets.fromLTRB(
           TiideSpacing.m + 2, TiideSpacing.m, TiideSpacing.m + 2, TiideSpacing.m),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Eyebrow('days sat with it',
+          Eyebrow('days sat with it',
               trailing: const Text('last 4 weeks',
                   style: TextStyle(
                       color: TiideColors.ink3,
@@ -302,7 +257,7 @@ class _HeatmapCard extends ConsumerWidget {
           if (c.count > maxCount) maxCount = c.count;
         }
         const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-        return _Card(
+        return InkCard(
           padding: const EdgeInsets.fromLTRB(
               TiideSpacing.m - 2, TiideSpacing.m, TiideSpacing.m, TiideSpacing.m),
           child: Column(
@@ -311,7 +266,7 @@ class _HeatmapCard extends ConsumerWidget {
               const Padding(
                 padding:
                     EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                child: _Eyebrow('time of day'),
+                child: Eyebrow('time of day'),
               ),
               const SizedBox(height: 10),
               Row(
@@ -454,7 +409,6 @@ class _InsightCard extends StatelessWidget {
         color: TiideColors.surface,
         borderRadius: BorderRadius.circular(TiideRadius.card),
         border: Border.all(color: TiideColors.hair2),
-        // Left clay rule.
       ),
       foregroundDecoration: BoxDecoration(
         borderRadius: BorderRadius.circular(TiideRadius.card),
@@ -503,11 +457,11 @@ class _TagBarCard extends ConsumerWidget {
       data: (tags) {
         if (tags.isEmpty) return const SizedBox.shrink();
         final max = tags.map((t) => t.count).reduce((a, b) => a > b ? a : b);
-        return _Card(
+        return InkCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _Eyebrow('by tag'),
+              const Eyebrow('by tag'),
               const SizedBox(height: TiideSpacing.m - 2),
               for (final t in tags)
                 Padding(
@@ -580,11 +534,11 @@ class _DurationCard extends ConsumerWidget {
         final maxCount =
             filled.map((b) => b.count).reduce((a, b) => a > b ? a : b);
         final mode = filled.reduce((a, b) => a.count >= b.count ? a : b);
-        return _Card(
+        return InkCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Eyebrow('duration',
+              Eyebrow('duration',
                   trailing: Text('${mode.minutes} min, most often',
                       style: const TextStyle(
                           color: TiideColors.ink3,
@@ -650,11 +604,11 @@ class _PlacesCard extends ConsumerWidget {
       error: (_, _) => const SizedBox.shrink(),
       data: (list) {
         if (list.isEmpty) return const SizedBox.shrink();
-        return _Card(
+        return InkCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Eyebrow('places',
+              Eyebrow('places',
                   trailing: GestureDetector(
                     onTap: onEdit,
                     child: const Text('edit names',
@@ -703,7 +657,7 @@ class _MiniMap extends StatelessWidget {
     return Container(
       height: 130,
       decoration: BoxDecoration(
-        color: const Color(0xFFE9E2D2),
+        color: TiideColors.mapCanvas,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: TiideColors.hair2),
       ),
